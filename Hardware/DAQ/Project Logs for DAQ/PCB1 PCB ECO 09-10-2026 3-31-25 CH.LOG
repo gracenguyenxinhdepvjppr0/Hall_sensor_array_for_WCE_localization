@@ -1,0 +1,4 @@
+Added Pin To Net: NetName=TX Pin=C22-1
+Added Pin To Net: NetName=RX Pin=C22-2
+Added Pin To Net: NetName=GND Pin=C22-3
+Added Pin To Net: NetName=3V3 Pin=C22-4

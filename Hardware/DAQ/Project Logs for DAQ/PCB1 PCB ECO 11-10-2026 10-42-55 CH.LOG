@@ -1,0 +1,17 @@
+Added Component: Designator=SPI2(IDC16)
+Add component (AddParameter): Name = "Value"; Value = "Header 5x2"; VariantName = "[No Variations]"
+Added Pin To Net: NetName=3V3 Pin=SPI2-1
+Added Pin To Net: NetName=3V3 Pin=SPI2-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=SPI2-3
+Added Pin To Net: NetName=A2 Pin=SPI2-4
+Added Pin To Net: NetName=GND Pin=SPI2-5
+Added Pin To Net: NetName=GND Pin=SPI2-6
+Added Pin To Net: NetName=SPI2_MISO Pin=SPI2-7
+Added Pin To Net: NetName=B2 Pin=SPI2-8
+Added Pin To Net: NetName=GND Pin=SPI2-9
+Added Pin To Net: NetName=GND Pin=SPI2-10
+Added Pin To Net: NetName=SPI2_SCK Pin=SPI2-11
+Added Pin To Net: NetName=C2 Pin=SPI2-12
+Added Pin To Net: NetName=GND Pin=SPI2-13
+Added Pin To Net: NetName=GND Pin=SPI2-14
+Added Member To Class: ClassName=MCU Member=Component SPI2 IDC 8X2

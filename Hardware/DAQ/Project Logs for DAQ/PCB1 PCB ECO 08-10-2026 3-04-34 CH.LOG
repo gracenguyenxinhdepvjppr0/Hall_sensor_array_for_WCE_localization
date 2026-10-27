@@ -1,0 +1,10 @@
+Change Component Designator: OldDesignator=HD? NewDesignator=HD1
+Change Component Designator: OldDesignator=HD? NewDesignator=HD2
+Change Component Designator: OldDesignator=HD? NewDesignator=HD3
+Added Member To Class: ClassName=MCU Member=Component C14 100nF
+Added Member To Class: ClassName=MCU Member=Component C16 10pF
+Added Member To Class: ClassName=MCU Member=Component C17 10pF
+Added Member To Class: ClassName=MCU Member=Component HD1 IDC 8X2
+Added Member To Class: ClassName=MCU Member=Component HD2 IDC 8X2
+Added Member To Class: ClassName=MCU Member=Component R1 10K
+Added Member To Class: ClassName=MCU Member=Component R2 1K

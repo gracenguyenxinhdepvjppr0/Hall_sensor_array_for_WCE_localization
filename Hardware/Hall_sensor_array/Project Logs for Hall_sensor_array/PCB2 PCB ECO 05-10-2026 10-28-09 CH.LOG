@@ -1,0 +1,32 @@
+Change Component Comment : Designator=R1 Old Comment= 10k New Comment=10k
+Change Component Comment : Designator=R2 Old Comment= 10k New Comment=10k
+Change Component Comment : Designator=R3 Old Comment= 10k New Comment=10k
+Change Component Comment : Designator=R4 Old Comment= 10k New Comment=10k
+Change Component Comment : Designator=R5 Old Comment= 10k New Comment=10k
+Change Component Comment : Designator=R6 Old Comment= 10k New Comment=10k
+Change Component Comment : Designator=R7 Old Comment= 10k New Comment=10k
+Change Component Comment : Designator=R8 Old Comment= 10k New Comment=10k
+Change Component Comment : Designator=R9 Old Comment= 10k New Comment=10k
+Change Component Comment : Designator=R10 Old Comment= 10k New Comment=10k
+Change Component Comment : Designator=R11 Old Comment= 10k New Comment=10k
+Change Component Comment : Designator=R12 Old Comment= 10k New Comment=10k
+Change Component Comment : Designator=R13 Old Comment= 10k New Comment=10k
+Change Component Comment : Designator=R14 Old Comment= 10k New Comment=10k
+Change Component Comment : Designator=R15 Old Comment= 10k New Comment=10k
+Change Component Comment : Designator=R16 Old Comment= 10k New Comment=10k
+Added Pin To Net: NetName=SPI1_MOSI Pin=U1-SDI
+Added Pin To Net: NetName=SPI1_MOSI Pin=U2-SDI
+Added Pin To Net: NetName=SPI1_MOSI Pin=U3-SDI
+Added Pin To Net: NetName=SPI1_MOSI Pin=U4-SDI
+Added Pin To Net: NetName=SPI1_MOSI Pin=U5-SDI
+Added Pin To Net: NetName=SPI1_MOSI Pin=U6-SDI
+Added Pin To Net: NetName=SPI1_MOSI Pin=U7-SDI
+Added Pin To Net: NetName=SPI1_MOSI Pin=U8-SDI
+Added Pin To Net: NetName=SPI2_MOSI Pin=U9-SDI
+Added Pin To Net: NetName=SPI2_MOSI Pin=U10-SDI
+Added Pin To Net: NetName=SPI2_MOSI Pin=U11-SDI
+Added Pin To Net: NetName=SPI2_MOSI Pin=U12-SDI
+Added Pin To Net: NetName=SPI2_MOSI Pin=U13-SDI
+Added Pin To Net: NetName=SPI2_MOSI Pin=U14-SDI
+Added Pin To Net: NetName=SPI2_MOSI Pin=U15-SDI
+Added Pin To Net: NetName=SPI2_MOSI Pin=U16-SDI

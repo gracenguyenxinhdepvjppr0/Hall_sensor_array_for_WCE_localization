@@ -1,0 +1,12 @@
+Added Pin To Net: NetName=SPI1_MISO Pin=U1-30
+Added Net: Name=SPI1_MISO
+Added Pin To Net: NetName=SPI1_MOSI Pin=U1-31
+Added Net: Name=SPI1_MOSI
+Added Pin To Net: NetName=SPI1_SCK Pin=U1-29
+Added Net: Name=SPI1_SCK
+Added Pin To Net: NetName=SPI2_MISO Pin=U1-17
+Added Net: Name=SPI2_MISO
+Added Pin To Net: NetName=SPI2_MOSI Pin=U1-16
+Added Net: Name=SPI2_MOSI
+Added Pin To Net: NetName=SPI2_SCK Pin=U1-46
+Added Net: Name=SPI2_SCK

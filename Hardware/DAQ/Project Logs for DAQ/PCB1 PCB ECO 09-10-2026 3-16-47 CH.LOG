@@ -1,0 +1,19 @@
+Change Component Designator: OldDesignator=SPI1 NewDesignator=HD2
+Change Component Designator: OldDesignator=SPI2 NewDesignator=HD3
+Added Component: Designator=C22(JP4-D1C)
+Add component (AddParameter): Name = "ComponentLink1 Description"; Value = "Manufacturer"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink1URL"; Value = "http://www.we-online.com"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2 Description"; Value = "Datasheet"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "ComponentLink2URL"; Value = "http://katalog.we-online.de/em/datasheet/6130xx143121.pdf"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Created by"; Value = "Karrer Zheng"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Created Date"; Value = "29 March 2013"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = "W¨¹rth Elektronik eiSos GmbH"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "NoPins"; Value = "04"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "partNo"; Value = "613004143121"; VariantName = "[No Variations]"
+Added Pin To Net: NetName=GND Pin=C22-3
+Added Pin To Net: NetName=3V3 Pin=C22-4
+Added Pin To Net: NetName=RX Pin=C22-2
+Added Net: Name=RX
+Added Pin To Net: NetName=TX Pin=C22-1
+Added Net: Name=TX
+Added Member To Class: ClassName=MCU Member=Component C22 JP4

@@ -1,0 +1,14 @@
+Added Component: Designator=POWER(LED_0805_BLUE)
+Add component (AddParameter): Name = "Distributor Link"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "LCSC"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer"; Value = ""; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Manufacturer Part Number"; Value = ""; VariantName = "[No Variations]"
+Added Component: Designator=R4(SM-0805)
+Add component (AddParameter): Name = "Value"; Value = "1K"; VariantName = "[No Variations]"
+Added Pin To Net: NetName=GND Pin=POWER-K
+Added Pin To Net: NetName=3V3 Pin=R4-1
+Added Pin To Net: NetName=NetPOWER_A Pin=POWER-A
+Added Pin To Net: NetName=NetPOWER_A Pin=R4-2
+Added Net: Name=NetPOWER_A
+Added Member To Class: ClassName=POWER Member=Component POWER BLUE
+Added Member To Class: ClassName=POWER Member=Component R4 1K

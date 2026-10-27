@@ -1,0 +1,20 @@
+Added Component: Designator=U?(SOP8)
+Added Component: Designator=U?(SOP8)
+Added Component: Designator=U?(SOP8)
+Added Component: Designator=U?(SOP8)
+Added Component: Designator=U?(SOP8)
+Added Pin To Net: NetName=GND Pin=U?-GND
+Added Pin To Net: NetName=GND Pin=U?-GND
+Added Pin To Net: NetName=GND Pin=U?-GND
+Added Pin To Net: NetName=GND Pin=U?-GND
+Added Pin To Net: NetName=GND Pin=U?-GND
+Added Pin To Net: NetName=VCC Pin=U?-VCC
+Added Pin To Net: NetName=VCC Pin=U?-VCC
+Added Pin To Net: NetName=VCC Pin=U?-VCC
+Added Pin To Net: NetName=VCC Pin=U?-VCC
+Added Pin To Net: NetName=VCC Pin=U?-VCC
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170

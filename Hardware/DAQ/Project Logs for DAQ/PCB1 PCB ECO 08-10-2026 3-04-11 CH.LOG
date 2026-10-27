@@ -1,0 +1,119 @@
+Removed Pin From Net: NetName=GND Pin=C14-1
+Removed Pin From Net: NetName=GND Pin=C15-1
+Removed Pin From Net: NetName=GND Pin=C16-1
+Removed Pin From Net: NetName=GND Pin=C17-1
+Removed Pin From Net: NetName=GND Pin=C18-1
+Removed Pin From Net: NetName=GND Pin=C19-1
+Removed Pin From Net: NetName=+3V3 Pin=C19-2
+Removed Pin From Net: NetName=+3V3 Pin=FB1-2
+Removed Pin From Net: NetName=+3V3 Pin=SWD1-1
+Removed Pin From Net: NetName=SWCLK Pin=SWD1-2
+Removed Pin From Net: NetName=SWDIO Pin=SWD1-3
+Removed Pin From Net: NetName=GND Pin=SWD1-4
+Removed Member From Class: ClassName=MCU Member=C18
+Removed Member From Class: ClassName=MCU Member=C19
+Removed Member From Class: ClassName=MCU Member=C21
+Removed Member From Class: ClassName=MCU Member=C22
+Removed Member From Class: ClassName=MCU Member=C23
+Removed Member From Class: ClassName=MCU Member=FB1
+Removed Member From Class: ClassName=MCU Member=R4
+Removed Member From Class: ClassName=MCU Member=SWD1
+Change Component Footprint: Designator=C15 Old Footprint=CAPC2012X145N New Footprint=JP4-D1C
+Change Component Comment : Designator=C15 Old Comment=1uF New Comment=JP4
+Change Component Designator: OldDesignator=C21 NewDesignator=C14
+Change Component Designator: OldDesignator=C22 NewDesignator=C16
+Change Component Designator: OldDesignator=C23 NewDesignator=C17
+Change Component Designator: OldDesignator=R2 NewDesignator=R1
+Change Component Designator: OldDesignator=R4 NewDesignator=R2
+Change component parameters: Designator = "C15" ("C15"); Footprint = "CAPC2012X145N"; UniqueID = "\ELQWASLZ" ("\ELQWASLZ")
+Change component parameters (AddParameter): Name = "ComponentLink1 Description"; Value = "Manufacturer"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "ComponentLink1URL"; Value = "http://www.we-online.com"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "ComponentLink2 Description"; Value = "Datasheet"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "ComponentLink2URL"; Value = "http://katalog.we-online.de/em/datasheet/6130xx143121.pdf"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Created by"; Value = "Karrer Zheng"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Created Date"; Value = "29 March 2013"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "Manufacturer"; Value = "W¨¹rth Elektronik eiSos GmbH"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "NoPins"; Value = "04"; VariantName = "[No Variations]"
+Change component parameters (AddParameter): Name = "partNo"; Value = "613004143121"; VariantName = "[No Variations]"
+Added Component: Designator=HD?(IDC16)
+Add component (AddParameter): Name = "Value"; Value = "Header 5x2"; VariantName = "[No Variations]"
+Added Component: Designator=HD?(IDC16)
+Add component (AddParameter): Name = "Value"; Value = "Header 5x2"; VariantName = "[No Variations]"
+Added Component: Designator=HD?(IDC16)
+Add component (AddParameter): Name = "Value"; Value = "Header 5x2"; VariantName = "[No Variations]"
+Added Pin To Net: NetName=+3V3 Pin=C15-1
+Added Pin To Net: NetName=SWCLK Pin=C15-2
+Added Pin To Net: NetName=SWDIO Pin=C15-3
+Added Pin To Net: NetName=GND Pin=C15-4
+Added Pin To Net: NetName=+3V3 Pin=HD?-1
+Added Pin To Net: NetName=+3V3 Pin=HD?-1
+Added Pin To Net: NetName=+3V3 Pin=HD?-2
+Added Pin To Net: NetName=+3V3 Pin=HD?-2
+Added Pin To Net: NetName=SPI1_MOSI Pin=HD?-3
+Added Pin To Net: NetName=SPI2_MOSI Pin=HD?-3
+Added Pin To Net: NetName=GND Pin=HD?-5
+Added Pin To Net: NetName=GND Pin=HD?-5
+Added Pin To Net: NetName=GND Pin=HD?-6
+Added Pin To Net: NetName=GND Pin=HD?-6
+Added Pin To Net: NetName=SPI1_MISO Pin=HD?-7
+Added Pin To Net: NetName=SPI2_MISO Pin=HD?-7
+Added Pin To Net: NetName=GND Pin=HD?-9
+Added Pin To Net: NetName=GND Pin=HD?-9
+Added Pin To Net: NetName=GND Pin=HD?-10
+Added Pin To Net: NetName=GND Pin=HD?-10
+Added Pin To Net: NetName=SPI1_SCK Pin=HD?-11
+Added Pin To Net: NetName=SPI2_SCK Pin=HD?-11
+Added Pin To Net: NetName=GND Pin=HD?-13
+Added Pin To Net: NetName=GND Pin=HD?-13
+Added Pin To Net: NetName=GND Pin=HD?-14
+Added Pin To Net: NetName=GND Pin=HD?-14
+Added Pin To Net: NetName=+3V3 Pin=U1-20
+Added Pin To Net: NetName=+3V3 Pin=U1-21
+Change Net Name : Old Net Name=+3V3 New Net Name=3V3
+Added Pin To Net: NetName=A1 Pin=HD?-4
+Added Net: Name=A1
+Added Pin To Net: NetName=A2 Pin=HD?-4
+Added Net: Name=A2
+Added Pin To Net: NetName=AL1 Pin=HD?-1
+Added Net: Name=AL1
+Added Pin To Net: NetName=AL2 Pin=HD?-3
+Added Net: Name=AL2
+Added Pin To Net: NetName=AL3 Pin=HD?-2
+Added Net: Name=AL3
+Added Pin To Net: NetName=AL4 Pin=HD?-4
+Added Net: Name=AL4
+Added Pin To Net: NetName=AL5 Pin=HD?-5
+Added Net: Name=AL5
+Added Pin To Net: NetName=AL6 Pin=HD?-7
+Added Net: Name=AL6
+Added Pin To Net: NetName=AL7 Pin=HD?-6
+Added Net: Name=AL7
+Added Pin To Net: NetName=AL8 Pin=HD?-8
+Added Net: Name=AL8
+Added Pin To Net: NetName=AL9 Pin=HD?-9
+Added Net: Name=AL9
+Added Pin To Net: NetName=AL10 Pin=HD?-11
+Added Net: Name=AL10
+Added Pin To Net: NetName=AL11 Pin=HD?-10
+Added Net: Name=AL11
+Added Pin To Net: NetName=AL12 Pin=HD?-12
+Added Net: Name=AL12
+Added Pin To Net: NetName=AL13 Pin=HD?-13
+Added Net: Name=AL13
+Added Pin To Net: NetName=AL14 Pin=HD?-15
+Added Net: Name=AL14
+Added Pin To Net: NetName=AL15 Pin=HD?-14
+Added Net: Name=AL15
+Added Pin To Net: NetName=AL16 Pin=HD?-16
+Added Net: Name=AL16
+Added Pin To Net: NetName=B1 Pin=HD?-8
+Added Net: Name=B1
+Added Pin To Net: NetName=B2 Pin=HD?-8
+Added Net: Name=B2
+Added Pin To Net: NetName=C1 Pin=HD?-12
+Added Net: Name=C1
+Added Pin To Net: NetName=C2 Pin=HD?-12
+Added Net: Name=C2
+Added Member To Class: ClassName=MCU Member=Component HD? IDC 8X2
+Added Member To Class: ClassName=MCU Member=Component HD? IDC 8X2
+Added Member To Class: ClassName=MCU Member=Component HD? IDC 8X2

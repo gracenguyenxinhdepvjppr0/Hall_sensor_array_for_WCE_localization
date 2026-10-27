@@ -1,0 +1,50 @@
+Added Component: Designator=C18(CAP_0805)
+Add component (AddParameter): Name = "LatestRevisionDate"; Value = "17-Jul-2002"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "LatestRevisionNote"; Value = "Re-released for DXP Platform."; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "PackageReference"; Value = "RAD-0.3"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Published"; Value = "8-Jun-2000"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Publisher"; Value = "Altium Limited"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Value"; Value = "33p"; VariantName = "[No Variations]"
+Added Component: Designator=C19(CAP_0805)
+Add component (AddParameter): Name = "LatestRevisionDate"; Value = "17-Jul-2002"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "LatestRevisionNote"; Value = "Re-released for DXP Platform."; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "PackageReference"; Value = "RAD-0.3"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Published"; Value = "8-Jun-2000"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Publisher"; Value = "Altium Limited"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Value"; Value = "33p"; VariantName = "[No Variations]"
+Added Component: Designator=C20(CAP_0805)
+Add component (AddParameter): Name = "LatestRevisionDate"; Value = "17-Jul-2002"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "LatestRevisionNote"; Value = "Re-released for DXP Platform."; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "PackageReference"; Value = "RAD-0.3"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Published"; Value = "8-Jun-2000"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Publisher"; Value = "Altium Limited"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Value"; Value = "33p"; VariantName = "[No Variations]"
+Added Component: Designator=JDC(DC-IN)
+Add component (AddParameter): Name = "Value"; Value = "Jac DC"; VariantName = "[No Variations]"
+Added Component: Designator=U2(SOT127P706X180-6N)
+Add component (AddParameter): Name = "Check_prices"; Value = "https://www.snapeda.com/parts/TPS73733DCQ/Texas+Instruments/view-part/?ref=eda"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "MF"; Value = "Texas Instruments"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "MP"; Value = "TPS73733DCQ"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Package"; Value = "SOT-223-6 Texas Instruments"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "SnapEDA_Link"; Value = "https://www.snapeda.com/parts/TPS73733DCQ/Texas+Instruments/view-part/?ref=snap"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Value"; Value = ""; VariantName = "[No Variations]"
+Added Pin To Net: NetName=GND Pin=C18-1
+Added Pin To Net: NetName=3V3 Pin=C18-2
+Added Pin To Net: NetName=GND Pin=C19-1
+Added Pin To Net: NetName=3V3 Pin=C19-2
+Added Pin To Net: NetName=GND Pin=C20-1
+Added Pin To Net: NetName=GND Pin=JDC-2
+Added Pin To Net: NetName=3V3 Pin=U2-2
+Added Pin To Net: NetName=GND Pin=U2-3
+Added Pin To Net: NetName=GND Pin=U2-6
+Added Pin To Net: NetName=5V Pin=C20-2
+Added Pin To Net: NetName=5V Pin=JDC-1
+Added Pin To Net: NetName=5V Pin=U2-1
+Added Net: Name=5V
+Added Class: Name=POWER
+Added Member To Class: ClassName=MCU Member=Component C14 100nF
+Added Member To Class: ClassName=MCU Member=Component C16 10pF
+Added Member To Class: ClassName=MCU Member=Component C17 10pF
+Added Member To Class: ClassName=MCU Member=Component HD3 IDC 8X2
+Added Member To Class: ClassName=MCU Member=Component R1 10K
+Added Member To Class: ClassName=MCU Member=Component R2 1K

@@ -1,0 +1,16 @@
+Added Component: Designator=U6(SOP8)
+Added Component: Designator=U7(SOP8)
+Added Component: Designator=U8(SOP8)
+Added Component: Designator=U9(SOP8)
+Added Pin To Net: NetName=GND Pin=U6-GND
+Added Pin To Net: NetName=VCC Pin=U6-VCC
+Added Pin To Net: NetName=GND Pin=U7-GND
+Added Pin To Net: NetName=VCC Pin=U7-VCC
+Added Pin To Net: NetName=GND Pin=U8-GND
+Added Pin To Net: NetName=VCC Pin=U8-VCC
+Added Pin To Net: NetName=GND Pin=U9-GND
+Added Pin To Net: NetName=VCC Pin=U9-VCC
+Added Member To Class: ClassName=Sheet2 Member=Component U6 TMAG5170
+Added Member To Class: ClassName=Sheet2 Member=Component U7 TMAG5170
+Added Member To Class: ClassName=Sheet2 Member=Component U8 TMAG5170
+Added Member To Class: ClassName=Sheet2 Member=Component U9 TMAG5170

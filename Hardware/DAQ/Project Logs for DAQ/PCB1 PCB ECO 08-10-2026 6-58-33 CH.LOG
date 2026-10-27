@@ -1,0 +1,8 @@
+Removed Pin From Net: NetName=LED Pin=U1-54
+Removed Pin From Net: NetName=A1 Pin=U1-55
+Removed Pin From Net: NetName=B1 Pin=U1-56
+Removed Pin From Net: NetName=C1 Pin=U1-57
+Change Component Designator: OldDesignator=SPI1 NewDesignator=HD2
+Change Component Designator: OldDesignator=SPI2 NewDesignator=HD3
+Added Member To Class: ClassName=MCU Member=Component HD2 IDC 8X2
+Added Member To Class: ClassName=MCU Member=Component HD3 IDC 8X2

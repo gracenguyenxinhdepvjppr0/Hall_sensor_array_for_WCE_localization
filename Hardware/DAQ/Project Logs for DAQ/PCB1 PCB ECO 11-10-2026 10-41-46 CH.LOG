@@ -1,0 +1,19 @@
+Added Component: Designator=HD1(IDC16)
+Add component (AddParameter): Name = "Value"; Value = "Header 5x2"; VariantName = "[No Variations]"
+Added Pin To Net: NetName=AL1 Pin=HD1-1
+Added Pin To Net: NetName=AL3 Pin=HD1-2
+Added Pin To Net: NetName=AL2 Pin=HD1-3
+Added Pin To Net: NetName=AL4 Pin=HD1-4
+Added Pin To Net: NetName=AL5 Pin=HD1-5
+Added Pin To Net: NetName=AL7 Pin=HD1-6
+Added Pin To Net: NetName=AL6 Pin=HD1-7
+Added Pin To Net: NetName=AL8 Pin=HD1-8
+Added Pin To Net: NetName=AL9 Pin=HD1-9
+Added Pin To Net: NetName=AL11 Pin=HD1-10
+Added Pin To Net: NetName=AL10 Pin=HD1-11
+Added Pin To Net: NetName=AL12 Pin=HD1-12
+Added Pin To Net: NetName=AL13 Pin=HD1-13
+Added Pin To Net: NetName=AL15 Pin=HD1-14
+Added Pin To Net: NetName=AL14 Pin=HD1-15
+Added Pin To Net: NetName=AL16 Pin=HD1-16
+Added Member To Class: ClassName=MCU Member=Component HD1 IDC 8X2

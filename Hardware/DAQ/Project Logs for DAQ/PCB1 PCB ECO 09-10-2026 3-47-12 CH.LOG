@@ -1,0 +1,4 @@
+Change Component Designator: OldDesignator=HD2 NewDesignator=SPI1
+Change Component Designator: OldDesignator=HD3 NewDesignator=SPI2
+Change Component Designator: OldDesignator=SWD NewDesignator=C15
+Change Component Designator: OldDesignator=UART NewDesignator=C22

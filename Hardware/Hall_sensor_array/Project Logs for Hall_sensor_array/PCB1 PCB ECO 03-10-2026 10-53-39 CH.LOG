@@ -1,0 +1,13 @@
+Removed Member From Class: ClassName=Sheet1 Member=TMAG5170
+Added Component: Designator=U1(TMAG5170)
+Added Component: Designator=U2(TMAG5170)
+Added Component: Designator=U3(TMAG5170)
+Added Component: Designator=U4(TMAG5170)
+Added Component: Designator=U5(TMAG5170)
+Added Net: Name=GND
+Added Net: Name=VCC
+Added Member To Class: ClassName=Sheet1 Member=Component U1 TMAG5170
+Added Member To Class: ClassName=Sheet1 Member=Component U2 TMAG5170
+Added Member To Class: ClassName=Sheet1 Member=Component U3 TMAG5170
+Added Member To Class: ClassName=Sheet1 Member=Component U4 TMAG5170
+Added Member To Class: ClassName=Sheet1 Member=Component U5 TMAG5170
