@@ -1,0 +1,105 @@
+Added Component: Designator=U1(PCBComponent_1 - duplicate)
+Added Component: Designator=U2(PCBComponent_1 - duplicate)
+Added Component: Designator=U3(PCBComponent_1 - duplicate)
+Added Component: Designator=U4(PCBComponent_1 - duplicate)
+Added Component: Designator=U5(PCBComponent_1 - duplicate)
+Added Component: Designator=U6(PCBComponent_1 - duplicate)
+Added Component: Designator=U7(PCBComponent_1 - duplicate)
+Added Component: Designator=U8(PCBComponent_1 - duplicate)
+Added Component: Designator=U9(PCBComponent_1 - duplicate)
+Added Component: Designator=U10(PCBComponent_1 - duplicate)
+Added Component: Designator=U11(PCBComponent_1 - duplicate)
+Added Component: Designator=U12(PCBComponent_1 - duplicate)
+Added Component: Designator=U13(PCBComponent_1 - duplicate)
+Added Component: Designator=U14(PCBComponent_1 - duplicate)
+Added Component: Designator=U15(PCBComponent_1 - duplicate)
+Added Component: Designator=U16(PCBComponent_1 - duplicate)
+Added Pin To Net: NetName=3V3 Pin=U1-5
+Added Pin To Net: NetName=3V3 Pin=U2-5
+Added Pin To Net: NetName=3V3 Pin=U3-5
+Added Pin To Net: NetName=3V3 Pin=U4-5
+Added Pin To Net: NetName=3V3 Pin=U5-5
+Added Pin To Net: NetName=3V3 Pin=U6-5
+Added Pin To Net: NetName=3V3 Pin=U7-5
+Added Pin To Net: NetName=3V3 Pin=U8-5
+Added Pin To Net: NetName=3V3 Pin=U9-5
+Added Pin To Net: NetName=3V3 Pin=U10-5
+Added Pin To Net: NetName=3V3 Pin=U11-5
+Added Pin To Net: NetName=3V3 Pin=U12-5
+Added Pin To Net: NetName=3V3 Pin=U13-5
+Added Pin To Net: NetName=3V3 Pin=U14-5
+Added Pin To Net: NetName=3V3 Pin=U15-5
+Added Pin To Net: NetName=3V3 Pin=U16-5
+Added Net: Name=3V3
+Added Pin To Net: NetName=GND Pin=U1-7
+Added Pin To Net: NetName=GND Pin=U2-7
+Added Pin To Net: NetName=GND Pin=U3-7
+Added Pin To Net: NetName=GND Pin=U4-7
+Added Pin To Net: NetName=GND Pin=U5-7
+Added Pin To Net: NetName=GND Pin=U6-7
+Added Pin To Net: NetName=GND Pin=U7-7
+Added Pin To Net: NetName=GND Pin=U8-7
+Added Pin To Net: NetName=GND Pin=U9-7
+Added Pin To Net: NetName=GND Pin=U10-7
+Added Pin To Net: NetName=GND Pin=U11-7
+Added Pin To Net: NetName=GND Pin=U12-7
+Added Pin To Net: NetName=GND Pin=U13-7
+Added Pin To Net: NetName=GND Pin=U14-7
+Added Pin To Net: NetName=GND Pin=U15-7
+Added Pin To Net: NetName=GND Pin=U16-7
+Added Net: Name=GND
+Added Pin To Net: NetName=SPI1_MISO Pin=U1-3
+Added Pin To Net: NetName=SPI1_MISO Pin=U2-3
+Added Pin To Net: NetName=SPI1_MISO Pin=U3-3
+Added Pin To Net: NetName=SPI1_MISO Pin=U4-3
+Added Pin To Net: NetName=SPI1_MISO Pin=U5-3
+Added Pin To Net: NetName=SPI1_MISO Pin=U6-3
+Added Pin To Net: NetName=SPI1_MISO Pin=U7-3
+Added Pin To Net: NetName=SPI1_MISO Pin=U8-3
+Added Net: Name=SPI1_MISO
+Added Pin To Net: NetName=SPI1_MOSI Pin=U1-2
+Added Pin To Net: NetName=SPI1_MOSI Pin=U2-2
+Added Pin To Net: NetName=SPI1_MOSI Pin=U3-2
+Added Pin To Net: NetName=SPI1_MOSI Pin=U4-2
+Added Pin To Net: NetName=SPI1_MOSI Pin=U5-2
+Added Pin To Net: NetName=SPI1_MOSI Pin=U6-2
+Added Pin To Net: NetName=SPI1_MOSI Pin=U7-2
+Added Pin To Net: NetName=SPI1_MOSI Pin=U8-2
+Added Net: Name=SPI1_MOSI
+Added Pin To Net: NetName=SPI1_SCK Pin=U1-1
+Added Pin To Net: NetName=SPI1_SCK Pin=U2-1
+Added Pin To Net: NetName=SPI1_SCK Pin=U3-1
+Added Pin To Net: NetName=SPI1_SCK Pin=U4-1
+Added Pin To Net: NetName=SPI1_SCK Pin=U5-1
+Added Pin To Net: NetName=SPI1_SCK Pin=U6-1
+Added Pin To Net: NetName=SPI1_SCK Pin=U7-1
+Added Pin To Net: NetName=SPI1_SCK Pin=U8-1
+Added Net: Name=SPI1_SCK
+Added Pin To Net: NetName=SPI2_MISO Pin=U9-3
+Added Pin To Net: NetName=SPI2_MISO Pin=U10-3
+Added Pin To Net: NetName=SPI2_MISO Pin=U11-3
+Added Pin To Net: NetName=SPI2_MISO Pin=U12-3
+Added Pin To Net: NetName=SPI2_MISO Pin=U13-3
+Added Pin To Net: NetName=SPI2_MISO Pin=U14-3
+Added Pin To Net: NetName=SPI2_MISO Pin=U15-3
+Added Pin To Net: NetName=SPI2_MISO Pin=U16-3
+Added Net: Name=SPI2_MISO
+Added Pin To Net: NetName=SPI2_MOSI Pin=U9-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=U10-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=U11-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=U12-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=U13-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=U14-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=U15-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=U16-2
+Added Net: Name=SPI2_MOSI
+Added Pin To Net: NetName=SPI2_SCK Pin=U9-1
+Added Pin To Net: NetName=SPI2_SCK Pin=U10-1
+Added Pin To Net: NetName=SPI2_SCK Pin=U11-1
+Added Pin To Net: NetName=SPI2_SCK Pin=U12-1
+Added Pin To Net: NetName=SPI2_SCK Pin=U13-1
+Added Pin To Net: NetName=SPI2_SCK Pin=U14-1
+Added Pin To Net: NetName=SPI2_SCK Pin=U15-1
+Added Pin To Net: NetName=SPI2_SCK Pin=U16-1
+Added Net: Name=SPI2_SCK
+Added Class: Name=Sheet2

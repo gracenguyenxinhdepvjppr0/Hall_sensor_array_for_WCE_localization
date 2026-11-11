@@ -1,0 +1,12 @@
+Removed Pin From Net: NetName=ALERT Pin=R1-2
+Added Component: Designator=U1(SOP8)
+Add Pin To Net: Unknown Pin: Pin U1-CS
+Add Pin To Net: Unknown Pin: Pin U1-GND
+Add Pin To Net: Unknown Pin: Pin U1-SCK
+Add Pin To Net: Unknown Pin: Pin U1-SDI
+Add Pin To Net: Unknown Pin: Pin U1-SDO
+Add Pin To Net: Unknown Pin: Pin U1-TEST
+Add Pin To Net: Unknown Pin: Pin U1-VCC
+Added Pin To Net: NetName=AL1 Pin=R1-2
+Added Net: Name=AL1
+Added Member To Class: ClassName=Sheet1 Member=Component U1 TMAG5170

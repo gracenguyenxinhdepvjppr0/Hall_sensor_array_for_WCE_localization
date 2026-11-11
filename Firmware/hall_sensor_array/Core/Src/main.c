@@ -5,14 +5,23 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <TMAG5170.h>
+#include <stdio.h>
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+typedef struct { err_t err; uint32_t tx, rx; } fail_info_t;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define N_BUS        2                  /* SPI1, SPI2 */
+#define N_PER_BUS    8                  /* mỗi decoder 3->8 chọn 8 cảm biến */
+#define N_SENSOR     (N_BUS * N_PER_BUS)
+#define TX_BUF_SIZE  512                /* dòng dài nhất ~403 byte */
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -32,6 +41,29 @@ UART_HandleTypeDef huart7;
 DMA_HandleTypeDef hdma_uart7_tx;
 
 /* USER CODE BEGIN PV */
+static const struct { GPIO_TypeDef *port; uint16_t pin; } cs_pin[2][3] = {
+    { { A1_GPIO_Port, A1_Pin }, { B1_GPIO_Port, B1_Pin }, { C1_GPIO_Port, C1_Pin } },   /* decoder 1: A1, B1, C1 */
+    { { A2_GPIO_Port, A2_Pin }, { B2_GPIO_Port, B2_Pin }, { C2_GPIO_Port, C2_Pin } },   /* decoder 2: A2, B2, C2 */
+};
+static uint8_t cs_addr[2];
+static TMAG5170_t tmag[2];          /* 1 struct / bus SPI (16 cảm biến cùng cấu hình) */
+static uint8_t    want_addr[2];     /* cảm biến đang nhắm tới trên mỗi bus */
+static bool       cs_active[2];     /* true = đang giữ CS của want_addr ở mức thấp */
+static int16_t    raw_code[N_SENSOR][3];
+float Bx[4][4], By[4][4], Bz[4][4];     /* từ trường (mT); cảm biến i -> [i/4][i%4], i = bus*8 + addr */
+static uint16_t err_mask;               /* bit i = cảm biến i đọc lỗi ở lần quét gần nhất */
+static uint32_t frame_no;
+
+static fail_info_t init_info[N_SENSOR], scan_info[N_SENSOR];
+static fail_info_t *cur_info = init_info;
+
+uint32_t t0, scan_us;
+
+static char     tx_buf[2][TX_BUF_SIZE] __attribute__((aligned(32)));
+static uint8_t  tx_sel;                 /* buffer sẽ được định dạng ở lần gọi kế tiếp */
+static volatile uint8_t tx_busy;        /* 1 = DMA đang gửi */
+static uint32_t tx_timeouts, tx_drops, tx_polled;  /* tx_timeouts tăng => ngắt UART7 chưa bật (xem ghi chú) */
+volatile uint32_t prof_scan_us, prof_send_us, prof_cycle_us;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -44,10 +76,210 @@ static void MX_SPI2_Init(void);
 static void MX_UART7_Init(void);
 static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
+void Write_addr(uint8_t bus, uint8_t addr);
+uint8_t step(uint8_t bus);
+uint8_t Sensor_select(uint8_t bus, uint8_t addr);
+void Decoder_Init(void);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+static inline uint8_t gray_of_step(uint8_t s) { return (uint8_t)((s ^ (s >> 1)) & 7u); }
+static inline uint8_t step_of_gray(uint8_t g) { return (uint8_t)((g ^ (g >> 1) ^ (g >> 2)) & 7u); }
+
+void Write_addr(uint8_t bus, uint8_t addr)
+{
+    for (int k = 0; k < 3; k++)         /* chân không đổi được ghi lại cùng mức -> không có chuyển mạch */
+        HAL_GPIO_WritePin(cs_pin[bus][k].port, cs_pin[bus][k].pin,
+                          (addr & (1u << k)) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    cs_addr[bus] = (uint8_t)(addr & 7u);
+}
+
+void Decoder_Init(void)
+{
+	for (uint8_t b = 0; b < 2; b++) Write_addr(b, 0);
+}
+
+uint8_t step(uint8_t bus)
+{
+    uint8_t s = step_of_gray(cs_addr[bus]);
+    uint8_t a = gray_of_step((uint8_t)((s + 1u) & 7u));
+    Write_addr(bus, a);
+    return a;
+}
+
+uint8_t Sensor_select(uint8_t bus, uint8_t addr)
+{
+	   addr &= 7u;
+	   uint8_t steps = 0;
+	   while (cs_addr[bus] != addr)
+	   {
+		   step(bus);
+		   steps++;
+	   }
+	   return steps;
+}
+
+static void cs_ring(uint8_t bus, bool select)
+{
+	if (select) {
+		Sensor_select(bus, want_addr[bus]);
+		cs_active[bus] = true;
+	} else if (cs_active[bus]) {
+		step(bus);
+		cs_active[bus] = false;
+	}
+}
+
+static void cs_bus0(bool select) { cs_ring(0, select); }
+static void cs_bus1(bool select) { cs_ring(1, select); }
+
+static void us_timer_init(void)
+{
+    uint32_t clk = HAL_RCC_GetPCLK2Freq();                         /* APB2 */
+    if (LL_RCC_GetAPB2Prescaler() != LL_RCC_APB2_DIV_1) clk *= 2u; /* clock timer = 2 x APB2 (TIMPRE = 0, mặc định) */
+    __HAL_TIM_SET_PRESCALER(&htim1, clk / 1000000u - 1u);
+    htim1.Instance->EGR = TIM_EGR_UG;                              /* nạp PSC ngay (đồng thời reset bộ đếm) */
+    HAL_TIM_Base_Start(&htim1);                                    /* ARR = 65535 -> tràn mỗi 65.5 ms */
+}
+
+static void delay_us(uint16_t us)                                  /* us <= 60000 */
+{
+    uint32_t tick0 = HAL_GetTick();
+    uint16_t t0 = (uint16_t)__HAL_TIM_GET_COUNTER(&htim1);
+    while ((uint16_t)((uint16_t)__HAL_TIM_GET_COUNTER(&htim1) - t0) < us) {
+        if ((HAL_GetTick() - tick0) > 5u) break;                   /* TIM1 không chạy (chưa bật clock) -> không treo */
+    }
+}
+
+static void uart_puts(const char *s)
+{
+    HAL_UART_Transmit(&huart7, (uint8_t *)s, (uint16_t)strlen(s), 100);
+}
+
+/* ---------- Quét theo vòng ----------
+ * Mỗi cảm biến nhận ĐÚNG 1 khung SPI cho mỗi vòng: sau khung, cs(false) bước sang cảm biến kế và
+ * chính cảm biến đó được chọn cho khung kế tiếp -> không có cảm biến nào bị kéo CS mà không có clock
+ * (tránh cờ FRAME_STAT của TMAG5170). Một vòng luôn đủ 8 khung nên con trỏ decoder quay về chỗ cũ. */
+typedef err_t (*lap_job_t)(TMAG5170_t *d, uint8_t idx, uint8_t arg);
+
+static uint16_t ring_lap(uint8_t bus, lap_job_t job, uint8_t arg)
+{
+    uint16_t fail = 0;                                        /* bit i = cảm biến i lỗi */
+    uint8_t  s0   = step_of_gray(cs_addr[bus]);               /* bắt đầu từ chỗ con trỏ đang đứng */
+
+    for (uint8_t k = 0; k < N_PER_BUS; k++) {
+        uint8_t addr = gray_of_step((uint8_t)((s0 + k) & 7u));
+        uint8_t idx  = (uint8_t)(bus * N_PER_BUS + addr);     /* idx = bus*8 + địa chỉ decoder */
+        want_addr[bus] = addr;
+        if (job(&tmag[bus], idx, arg) != TMAG_OK) fail |= (uint16_t)(1u << idx);
+    }
+    return fail;
+}
+
+static err_t job_init   (TMAG5170_t *d, uint8_t idx, uint8_t step) { (void)idx; return TMAG5170_InitStep(d, step); }
+static err_t job_trigger(TMAG5170_t *d, uint8_t idx, uint8_t arg)  { (void)idx; (void)arg; return TMAG5170_Trigger(d); }
+static err_t job_axis   (TMAG5170_t *d, uint8_t idx, uint8_t axis) { return TMAG5170_ReadAxis(d, axis, &raw_code[idx][axis]); }
+
+/* Khởi tạo 16 cảm biến: từng bước cấu hình chạy hết một vòng trên bus 0 rồi bus 1 */
+static void TMAG5170_InitAll(void)
+{
+    uint16_t fail = 0;
+    char msg[32];
+
+    HAL_Delay(2);                                             /* > tstart_power_up (tối đa 500 us) */
+    for (uint8_t b = 0; b < N_BUS; b++)
+        TMAG5170_InitBegin(&tmag[b], b ? &hspi2 : &hspi1, b ? cs_bus1 : cs_bus0, TRIGGER);
+
+    for (uint8_t step = 0; step < TMAG5170_INIT_STEPS; step++)
+        for (uint8_t b = 0; b < N_BUS; b++)
+            fail |= ring_lap(b, job_init, step);
+
+    if (fail) {
+        snprintf(msg, sizeof msg, "INIT_FAIL,%04X\r\n", (unsigned)fail);   /* bit i = cảm biến i */
+        uart_puts(msg);
+    }
+}
+
+/* Quét 16 cảm biến -> Bx, By, Bz (mT). Cảm biến lỗi: giữ giá trị cũ, bật bit trong err_mask.
+ * Vòng 1: trigger cả 16 cảm biến; chờ chuyển đổi; vòng 2..4: đọc X, Y, Z. */
+static void Scan16(void)
+{
+    uint16_t fail = 0;
+
+    cur_info = scan_info;
+     memset(scan_info, 0, sizeof scan_info);                   /* chỉ giữ lỗi của lần quét này */
+     for (uint8_t b = 0; b < N_BUS; b++) fail |= ring_lap(b, job_trigger, 0);
+     delay_us(3000);                                  /* ~2.44 ms với 32x, 3 trục */
+     for (uint8_t axis = 0; axis < 3; axis++)
+         for (uint8_t b = 0; b < N_BUS; b++) fail |= ring_lap(b, job_axis, axis);
+
+    for (uint8_t i = 0; i < N_SENSOR; i++) {
+        if (fail & (1u << i)) continue;
+        const TMAG5170_t *d = &tmag[i / N_PER_BUS];
+        Bx[i / 4][i % 4] = TMAG5170_CodeToMT(d, raw_code[i][0]);
+        By[i / 4][i % 4] = TMAG5170_CodeToMT(d, raw_code[i][1]);
+        Bz[i / 4][i % 4] = TMAG5170_CodeToMT(d, raw_code[i][2]);
+    }
+    err_mask = fail;
+}
+
+static int append_array(char* buf, int n, float a[4][4])
+{
+    for (int r = 0; r < 4; r++) {
+        for (int c = 0; c < 4; c++) {
+            if (n >= TX_BUF_SIZE) return n;
+            float  x  = a[r][c] * 1000.0f;                       /* mT -> uT */
+            long   ut = (long)(x + (x >= 0.0f ? 0.5f : -0.5f));  /* làm tròn, không cần printf float */
+            n += snprintf(buf + n, TX_BUF_SIZE - n, ",%ld", ut);
+        }
+    }
+    return n;
+}
+
+static void uart_wait_idle(void)
+{
+    uint32_t t0 = HAL_GetTick();
+    while (tx_busy) {
+        if (((DMA_Stream_TypeDef *)hdma_uart7_tx.Instance)->NDTR == 0u && __HAL_UART_GET_FLAG(&huart7, UART_FLAG_TC)) {
+            if (tx_busy) {                                    /* callback chưa tới */
+                HAL_UART_AbortTransmit(&huart7);
+                tx_polled++;
+                tx_busy = 0;
+            }
+            break;
+        }
+        if ((HAL_GetTick() - t0) > 100u) {
+            HAL_UART_AbortTransmit(&huart7);
+            tx_busy = 0;
+            tx_timeouts++;
+            break;
+        }
+    }
+}
+
+/* 1 dòng / lần quét:  B,<số khung>,<err_mask hex>,Bx[0][0..3],Bx[1][..],...,By...,Bz...   (đơn vị uT) */
+static void Send_UART(void)
+{
+    char *buf = tx_buf[tx_sel];
+    int n = snprintf(buf, TX_BUF_SIZE, "B,%lu,%04X", (unsigned long)frame_no++, (unsigned)err_mask);
+    n = append_array(buf, n, Bx);
+    n = append_array(buf, n, By);
+    n = append_array(buf, n, Bz);
+    if (n > TX_BUF_SIZE - 3) n = TX_BUF_SIZE - 3;
+    buf[n++] = '\r';
+    buf[n++] = '\n';
+
+    uart_wait_idle();
+    tx_busy = 1;
+    if (HAL_UART_Transmit_DMA(&huart7, (uint8_t *)buf, (uint16_t)n) != HAL_OK) {
+        tx_busy = 0;
+        tx_drops++;
+        return;
+    }
+    tx_sel ^= 1u;
+}
 /* USER CODE END 0 */
 
 /**
@@ -85,13 +317,36 @@ int main(void)
   MX_UART7_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
+  Decoder_Init();
+  us_timer_init();
+  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;     /* bộ đếm chu kỳ để đo thời gian */
+  DWT->LAR = 0xC5ACCE55;
+  DWT->CYCCNT = 0;
+  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+  HAL_NVIC_SetPriority(UART7_IRQn, 1, 0);             /* đảm bảo ngắt UART7 được bật (báo xong TX DMA) */
+  HAL_NVIC_EnableIRQ(UART7_IRQn);
+  TMAG5170_InitAll();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  while(1)
+  {
+      static uint32_t c_prev;
+      uint32_t k  = SystemCoreClock / 1000000u;       /* chu kỳ / us */
+      uint32_t c0 = DWT->CYCCNT;
+      Scan16();
+      uint32_t c1 = DWT->CYCCNT;
+      Send_UART();
+      uint32_t c2 = DWT->CYCCNT;
+      prof_scan_us  = (c1 - c0) / k;                  /* chỉ Scan16() */
+      prof_send_us  = (c2 - c1) / k;                  /* định dạng + chờ khung trước + bật DMA */
+      prof_cycle_us = (c0 - c_prev) / k;              /* từ đầu vòng trước tới đầu vòng này */
+      c_prev = c0;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+  }
   /* USER CODE END 3 */
 }
 
@@ -179,11 +434,11 @@ static void MX_SPI1_Init(void)
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_4BIT;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -224,11 +479,11 @@ static void MX_SPI2_Init(void)
   hspi2.Instance = SPI2;
   hspi2.Init.Mode = SPI_MODE_MASTER;
   hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi2.Init.DataSize = SPI_DATASIZE_4BIT;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -310,7 +565,7 @@ static void MX_UART7_Init(void)
   /* USER CODE BEGIN UART7_Init 1 */
   /* USER CODE END UART7_Init 1 */
   huart7.Instance = UART7;
-  huart7.Init.BaudRate = 115200;
+  huart7.Init.BaudRate = 921600;
   huart7.Init.WordLength = UART_WORDLENGTH_8B;
   huart7.Init.StopBits = UART_STOPBITS_1;
   huart7.Init.Parity = UART_PARITY_NONE;
@@ -375,26 +630,26 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
-  LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOC);
   LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOH);
+  LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOC);
   LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOA);
   LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOE);
   LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOB);
   LL_AHB4_GRP1_EnableClock(LL_AHB4_GRP1_PERIPH_GPIOD);
 
   /**/
-  LL_GPIO_ResetOutputPin(GPIOC, A1_Pin|B1_Pin|LL_GPIO_PIN_15);
+  LL_GPIO_ResetOutputPin(GPIOB, A1_Pin|B1_Pin|C1_Pin);
 
   /**/
   LL_GPIO_ResetOutputPin(GPIOD, LL_GPIO_PIN_8|A2_Pin|B2_Pin|C2_Pin);
 
   /**/
-  GPIO_InitStruct.Pin = A1_Pin|B1_Pin|LL_GPIO_PIN_15;
+  GPIO_InitStruct.Pin = A1_Pin|B1_Pin|C1_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_DOWN;
-  LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /**/
   GPIO_InitStruct.Pin = LL_GPIO_PIN_8;

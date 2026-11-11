@@ -1,0 +1,14 @@
+../Core/Src/TMAG5170.c:4:16:crc4	3
+../Core/Src/TMAG5170.c:17:17:make_frame	1
+../Core/Src/TMAG5170.c:24:14:xfer	4
+../Core/Src/TMAG5170.c:46:14:reg_write	1
+../Core/Src/TMAG5170.c:52:14:reg_read_cmd	3
+../Core/Src/TMAG5170.c:60:14:reg_read	1
+../Core/Src/TMAG5170.c:66:17:dev_cfg_of	2
+../Core/Src/TMAG5170.c:73:6:TMAG5170_InitBegin	1
+../Core/Src/TMAG5170.c:83:7:TMAG5170_InitStep	12
+../Core/Src/TMAG5170.c:107:7:TMAG5170_Init	4
+../Core/Src/TMAG5170.c:123:7:TMAG5170_Trigger	1
+../Core/Src/TMAG5170.c:129:7:TMAG5170_ReadAxis	3
+../Core/Src/TMAG5170.c:142:7:TMAG5170_CodeToMT	1
+../Core/Src/TMAG5170.c:148:7:TMAG5170_read_XYZ	13

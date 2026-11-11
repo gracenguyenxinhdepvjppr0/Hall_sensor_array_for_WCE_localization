@@ -1,0 +1,12 @@
+Output: NC Drill Files
+Type  : NC Drill
+From  : Project [HSR_V2.PrjPcb]
+   Generated File[HSR_V2 - Copy-Plated.TXT]
+   Generated File[HSR_V2 - Copy.LDP]
+   Generated File[HSR_V2 - Copy.DRR]
+
+
+Files Generated   : 3
+Documents Printed : 0
+
+Finished Output Generation At 3:12:40 CH On 01/11/2026

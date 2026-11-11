@@ -1,0 +1,165 @@
+Removed Pin From Net: NetName=SPI1_MISO Pin=R2-2
+Removed Pin From Net: NetName=SPI1_MISO Pin=R3-2
+Removed Pin From Net: NetName=SPI1_MISO Pin=R4-2
+Removed Pin From Net: NetName=SPI1_MISO Pin=R5-2
+Removed Pin From Net: NetName=SPI1_MISO Pin=R6-2
+Removed Pin From Net: NetName=SPI1_MISO Pin=R7-2
+Removed Pin From Net: NetName=SPI1_MISO Pin=R8-2
+Removed Pin From Net: NetName=SPI2_MISO Pin=R9-2
+Removed Pin From Net: NetName=SPI2_MISO Pin=R10-2
+Removed Pin From Net: NetName=SPI2_MISO Pin=R11-2
+Removed Pin From Net: NetName=SPI2_MISO Pin=R12-2
+Removed Pin From Net: NetName=SPI2_MISO Pin=R13-2
+Removed Pin From Net: NetName=SPI2_MISO Pin=R14-2
+Removed Pin From Net: NetName=SPI2_MISO Pin=R15-2
+Removed Pin From Net: NetName=SPI2_MISO Pin=R16-2
+Removed Member From Class: ClassName=Sheet2 Member=R2
+Removed Member From Class: ClassName=Sheet2 Member=R3
+Removed Member From Class: ClassName=Sheet2 Member=R4
+Removed Member From Class: ClassName=Sheet2 Member=R5
+Removed Member From Class: ClassName=Sheet2 Member=R6
+Removed Member From Class: ClassName=Sheet2 Member=R7
+Removed Member From Class: ClassName=Sheet2 Member=R8
+Removed Member From Class: ClassName=Sheet2 Member=R9
+Removed Member From Class: ClassName=Sheet2 Member=R10
+Removed Member From Class: ClassName=Sheet2 Member=R11
+Removed Member From Class: ClassName=Sheet2 Member=R12
+Removed Member From Class: ClassName=Sheet2 Member=R13
+Removed Member From Class: ClassName=Sheet2 Member=R14
+Removed Member From Class: ClassName=Sheet2 Member=R15
+Removed Member From Class: ClassName=Sheet2 Member=R16
+Added Component: Designator=U?(PCBComponent_1 - duplicate)
+Added Component: Designator=U?(PCBComponent_1 - duplicate)
+Added Component: Designator=U?(PCBComponent_1 - duplicate)
+Added Component: Designator=U?(PCBComponent_1 - duplicate)
+Added Component: Designator=U?(PCBComponent_1 - duplicate)
+Added Component: Designator=U?(PCBComponent_1 - duplicate)
+Added Component: Designator=U?(PCBComponent_1 - duplicate)
+Added Component: Designator=U?(PCBComponent_1 - duplicate)
+Added Component: Designator=U?(PCBComponent_1 - duplicate)
+Added Component: Designator=U?(PCBComponent_1 - duplicate)
+Added Component: Designator=U?(PCBComponent_1 - duplicate)
+Added Component: Designator=U?(PCBComponent_1 - duplicate)
+Added Component: Designator=U?(PCBComponent_1 - duplicate)
+Added Component: Designator=U?(PCBComponent_1 - duplicate)
+Added Component: Designator=U?(PCBComponent_1 - duplicate)
+Added Pin To Net: NetName=SPI1_SCK Pin=U?-1
+Added Pin To Net: NetName=SPI1_SCK Pin=U?-1
+Added Pin To Net: NetName=SPI1_SCK Pin=U?-1
+Added Pin To Net: NetName=SPI1_SCK Pin=U?-1
+Added Pin To Net: NetName=SPI1_SCK Pin=U?-1
+Added Pin To Net: NetName=SPI1_SCK Pin=U?-1
+Added Pin To Net: NetName=SPI1_SCK Pin=U?-1
+Added Pin To Net: NetName=SPI2_SCK Pin=U?-1
+Added Pin To Net: NetName=SPI2_SCK Pin=U?-1
+Added Pin To Net: NetName=SPI2_SCK Pin=U?-1
+Added Pin To Net: NetName=SPI2_SCK Pin=U?-1
+Added Pin To Net: NetName=SPI2_SCK Pin=U?-1
+Added Pin To Net: NetName=SPI2_SCK Pin=U?-1
+Added Pin To Net: NetName=SPI2_SCK Pin=U?-1
+Added Pin To Net: NetName=SPI2_SCK Pin=U?-1
+Added Pin To Net: NetName=SPI1_MOSI Pin=U?-2
+Added Pin To Net: NetName=SPI1_MOSI Pin=U?-2
+Added Pin To Net: NetName=SPI1_MOSI Pin=U?-2
+Added Pin To Net: NetName=SPI1_MOSI Pin=U?-2
+Added Pin To Net: NetName=SPI1_MOSI Pin=U?-2
+Added Pin To Net: NetName=SPI1_MOSI Pin=U?-2
+Added Pin To Net: NetName=SPI1_MOSI Pin=U?-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=U?-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=U?-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=U?-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=U?-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=U?-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=U?-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=U?-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=U?-2
+Added Pin To Net: NetName=SPI1_MISO Pin=U?-3
+Added Pin To Net: NetName=SPI1_MISO Pin=U?-3
+Added Pin To Net: NetName=SPI1_MISO Pin=U?-3
+Added Pin To Net: NetName=SPI1_MISO Pin=U?-3
+Added Pin To Net: NetName=SPI1_MISO Pin=U?-3
+Added Pin To Net: NetName=SPI1_MISO Pin=U?-3
+Added Pin To Net: NetName=SPI1_MISO Pin=U?-3
+Added Pin To Net: NetName=SPI2_MISO Pin=U?-3
+Added Pin To Net: NetName=SPI2_MISO Pin=U?-3
+Added Pin To Net: NetName=SPI2_MISO Pin=U?-3
+Added Pin To Net: NetName=SPI2_MISO Pin=U?-3
+Added Pin To Net: NetName=SPI2_MISO Pin=U?-3
+Added Pin To Net: NetName=SPI2_MISO Pin=U?-3
+Added Pin To Net: NetName=SPI2_MISO Pin=U?-3
+Added Pin To Net: NetName=SPI2_MISO Pin=U?-3
+Added Pin To Net: NetName=SENS2 Pin=U?-4
+Added Pin To Net: NetName=SENS3 Pin=U?-4
+Added Pin To Net: NetName=SENS4 Pin=U?-4
+Added Pin To Net: NetName=SENS5 Pin=U?-4
+Added Pin To Net: NetName=SENS6 Pin=U?-4
+Added Pin To Net: NetName=SENS7 Pin=U?-4
+Added Pin To Net: NetName=SENS8 Pin=U?-4
+Added Pin To Net: NetName=SENS9 Pin=U?-4
+Added Pin To Net: NetName=SENS10 Pin=U?-4
+Added Pin To Net: NetName=SENS11 Pin=U?-4
+Added Pin To Net: NetName=SENS12 Pin=U?-4
+Added Pin To Net: NetName=SENS13 Pin=U?-4
+Added Pin To Net: NetName=SENS14 Pin=U?-4
+Added Pin To Net: NetName=SENS15 Pin=U?-4
+Added Pin To Net: NetName=SENS16 Pin=U?-4
+Added Pin To Net: NetName=3V3 Pin=U?-5
+Added Pin To Net: NetName=3V3 Pin=U?-5
+Added Pin To Net: NetName=3V3 Pin=U?-5
+Added Pin To Net: NetName=3V3 Pin=U?-5
+Added Pin To Net: NetName=3V3 Pin=U?-5
+Added Pin To Net: NetName=3V3 Pin=U?-5
+Added Pin To Net: NetName=3V3 Pin=U?-5
+Added Pin To Net: NetName=3V3 Pin=U?-5
+Added Pin To Net: NetName=3V3 Pin=U?-5
+Added Pin To Net: NetName=3V3 Pin=U?-5
+Added Pin To Net: NetName=3V3 Pin=U?-5
+Added Pin To Net: NetName=3V3 Pin=U?-5
+Added Pin To Net: NetName=3V3 Pin=U?-5
+Added Pin To Net: NetName=3V3 Pin=U?-5
+Added Pin To Net: NetName=3V3 Pin=U?-5
+Added Pin To Net: NetName=AL2 Pin=U?-6
+Added Pin To Net: NetName=AL3 Pin=U?-6
+Added Pin To Net: NetName=AL4 Pin=U?-6
+Added Pin To Net: NetName=AL5 Pin=U?-6
+Added Pin To Net: NetName=AL6 Pin=U?-6
+Added Pin To Net: NetName=AL7 Pin=U?-6
+Added Pin To Net: NetName=AL8 Pin=U?-6
+Added Pin To Net: NetName=AL9 Pin=U?-6
+Added Pin To Net: NetName=AL10 Pin=U?-6
+Added Pin To Net: NetName=AL11 Pin=U?-6
+Added Pin To Net: NetName=AL12 Pin=U?-6
+Added Pin To Net: NetName=AL13 Pin=U?-6
+Added Pin To Net: NetName=AL14 Pin=U?-6
+Added Pin To Net: NetName=AL15 Pin=U?-6
+Added Pin To Net: NetName=AL16 Pin=U?-6
+Added Pin To Net: NetName=GND Pin=U?-7
+Added Pin To Net: NetName=GND Pin=U?-7
+Added Pin To Net: NetName=GND Pin=U?-7
+Added Pin To Net: NetName=GND Pin=U?-7
+Added Pin To Net: NetName=GND Pin=U?-7
+Added Pin To Net: NetName=GND Pin=U?-7
+Added Pin To Net: NetName=GND Pin=U?-7
+Added Pin To Net: NetName=GND Pin=U?-7
+Added Pin To Net: NetName=GND Pin=U?-7
+Added Pin To Net: NetName=GND Pin=U?-7
+Added Pin To Net: NetName=GND Pin=U?-7
+Added Pin To Net: NetName=GND Pin=U?-7
+Added Pin To Net: NetName=GND Pin=U?-7
+Added Pin To Net: NetName=GND Pin=U?-7
+Added Pin To Net: NetName=GND Pin=U?-7
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170_MODULE
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170_MODULE
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170_MODULE
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170_MODULE
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170_MODULE
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170_MODULE
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170_MODULE
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170_MODULE
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170_MODULE
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170_MODULE
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170_MODULE
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170_MODULE
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170_MODULE
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170_MODULE
+Added Member To Class: ClassName=Sheet2 Member=Component U? TMAG5170_MODULE

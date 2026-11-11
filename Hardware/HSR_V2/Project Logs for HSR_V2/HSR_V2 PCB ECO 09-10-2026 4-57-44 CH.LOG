@@ -1,0 +1,155 @@
+Added Component: Designator=HD1(IDC16)
+Add component (AddParameter): Name = "Value"; Value = "Header 5x2"; VariantName = "[No Variations]"
+Added Component: Designator=SPI1(IDC16)
+Add component (AddParameter): Name = "Value"; Value = "Header 5x2"; VariantName = "[No Variations]"
+Added Component: Designator=SPI2(IDC16)
+Add component (AddParameter): Name = "Value"; Value = "Header 5x2"; VariantName = "[No Variations]"
+Added Component: Designator=U17(SOIC127P600X175-16N)
+Add component (AddParameter): Name = "Check_prices"; Value = "https://www.snapeda.com/parts/SN74LVC138AD/Texas+Instruments/view-part/?ref=eda"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "MF"; Value = "Texas Instruments"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "MP"; Value = "SN74LVC138AD"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Package"; Value = "SOIC-16 Texas Instruments"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "SnapEDA_Link"; Value = "https://www.snapeda.com/parts/SN74LVC138AD/Texas+Instruments/view-part/?ref=snap"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Value"; Value = ""; VariantName = "[No Variations]"
+Added Component: Designator=U18(SOIC127P600X175-16N)
+Add component (AddParameter): Name = "Check_prices"; Value = "https://www.snapeda.com/parts/SN74LVC138AD/Texas+Instruments/view-part/?ref=eda"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "MF"; Value = "Texas Instruments"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "MP"; Value = "SN74LVC138AD"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Package"; Value = "SOIC-16 Texas Instruments"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "SnapEDA_Link"; Value = "https://www.snapeda.com/parts/SN74LVC138AD/Texas+Instruments/view-part/?ref=snap"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Value"; Value = ""; VariantName = "[No Variations]"
+Added Pin To Net: NetName=3V3 Pin=SPI1-1
+Added Pin To Net: NetName=3V3 Pin=SPI1-2
+Added Pin To Net: NetName=SPI1_MOSI Pin=SPI1-3
+Added Pin To Net: NetName=GND Pin=SPI1-5
+Added Pin To Net: NetName=GND Pin=SPI1-6
+Added Pin To Net: NetName=SPI1_MISO Pin=SPI1-7
+Added Pin To Net: NetName=GND Pin=SPI1-9
+Added Pin To Net: NetName=GND Pin=SPI1-10
+Added Pin To Net: NetName=SPI1_SCK Pin=SPI1-11
+Added Pin To Net: NetName=GND Pin=SPI1-13
+Added Pin To Net: NetName=GND Pin=SPI1-14
+Added Pin To Net: NetName=3V3 Pin=SPI2-1
+Added Pin To Net: NetName=3V3 Pin=SPI2-2
+Added Pin To Net: NetName=SPI2_MOSI Pin=SPI2-3
+Added Pin To Net: NetName=GND Pin=SPI2-5
+Added Pin To Net: NetName=GND Pin=SPI2-6
+Added Pin To Net: NetName=SPI2_MISO Pin=SPI2-7
+Added Pin To Net: NetName=GND Pin=SPI2-9
+Added Pin To Net: NetName=GND Pin=SPI2-10
+Added Pin To Net: NetName=SPI2_SCK Pin=SPI2-11
+Added Pin To Net: NetName=GND Pin=SPI2-13
+Added Pin To Net: NetName=GND Pin=SPI2-14
+Added Pin To Net: NetName=GND Pin=U17-4
+Added Pin To Net: NetName=GND Pin=U17-5
+Added Pin To Net: NetName=3V3 Pin=U17-6
+Added Pin To Net: NetName=GND Pin=U17-8
+Added Pin To Net: NetName=3V3 Pin=U17-16
+Added Pin To Net: NetName=GND Pin=U18-4
+Added Pin To Net: NetName=GND Pin=U18-5
+Added Pin To Net: NetName=3V3 Pin=U18-6
+Added Pin To Net: NetName=GND Pin=U18-8
+Added Pin To Net: NetName=3V3 Pin=U18-16
+Added Pin To Net: NetName=A1 Pin=SPI1-4
+Added Pin To Net: NetName=A1 Pin=U17-1
+Added Net: Name=A1
+Added Pin To Net: NetName=A2 Pin=SPI2-4
+Added Pin To Net: NetName=A2 Pin=U18-1
+Added Net: Name=A2
+Added Pin To Net: NetName=AL1 Pin=HD1-1
+Added Net: Name=AL1
+Added Pin To Net: NetName=AL2 Pin=HD1-3
+Added Net: Name=AL2
+Added Pin To Net: NetName=AL3 Pin=HD1-2
+Added Net: Name=AL3
+Added Pin To Net: NetName=AL4 Pin=HD1-4
+Added Net: Name=AL4
+Added Pin To Net: NetName=AL5 Pin=HD1-5
+Added Net: Name=AL5
+Added Pin To Net: NetName=AL6 Pin=HD1-7
+Added Net: Name=AL6
+Added Pin To Net: NetName=AL7 Pin=HD1-6
+Added Net: Name=AL7
+Added Pin To Net: NetName=AL8 Pin=HD1-8
+Added Net: Name=AL8
+Added Pin To Net: NetName=AL9 Pin=HD1-9
+Added Net: Name=AL9
+Added Pin To Net: NetName=AL10 Pin=HD1-11
+Added Net: Name=AL10
+Added Pin To Net: NetName=AL11 Pin=HD1-10
+Added Net: Name=AL11
+Added Pin To Net: NetName=AL12 Pin=HD1-12
+Added Net: Name=AL12
+Added Pin To Net: NetName=AL13 Pin=HD1-13
+Added Net: Name=AL13
+Added Pin To Net: NetName=AL14 Pin=HD1-15
+Added Net: Name=AL14
+Added Pin To Net: NetName=AL15 Pin=HD1-14
+Added Net: Name=AL15
+Added Pin To Net: NetName=AL16 Pin=HD1-16
+Added Net: Name=AL16
+Added Pin To Net: NetName=B1 Pin=SPI1-8
+Added Pin To Net: NetName=B1 Pin=U17-2
+Added Net: Name=B1
+Added Pin To Net: NetName=B2 Pin=SPI2-8
+Added Pin To Net: NetName=B2 Pin=U18-2
+Added Net: Name=B2
+Added Pin To Net: NetName=C1 Pin=SPI1-12
+Added Pin To Net: NetName=C1 Pin=U17-3
+Added Net: Name=C1
+Added Pin To Net: NetName=C2 Pin=SPI2-12
+Added Pin To Net: NetName=C2 Pin=U18-3
+Added Net: Name=C2
+Added Pin To Net: NetName=SENS1 Pin=U1-4
+Added Pin To Net: NetName=SENS1 Pin=U17-15
+Added Net: Name=SENS1
+Added Pin To Net: NetName=SENS2 Pin=U2-4
+Added Pin To Net: NetName=SENS2 Pin=U17-14
+Added Net: Name=SENS2
+Added Pin To Net: NetName=SENS3 Pin=U3-4
+Added Pin To Net: NetName=SENS3 Pin=U17-13
+Added Net: Name=SENS3
+Added Pin To Net: NetName=SENS4 Pin=U4-4
+Added Pin To Net: NetName=SENS4 Pin=U17-12
+Added Net: Name=SENS4
+Added Pin To Net: NetName=SENS5 Pin=U5-4
+Added Pin To Net: NetName=SENS5 Pin=U17-11
+Added Net: Name=SENS5
+Added Pin To Net: NetName=SENS6 Pin=U6-4
+Added Pin To Net: NetName=SENS6 Pin=U17-10
+Added Net: Name=SENS6
+Added Pin To Net: NetName=SENS7 Pin=U7-4
+Added Pin To Net: NetName=SENS7 Pin=U17-9
+Added Net: Name=SENS7
+Added Pin To Net: NetName=SENS8 Pin=U8-4
+Added Pin To Net: NetName=SENS8 Pin=U17-7
+Added Net: Name=SENS8
+Added Pin To Net: NetName=SENS9 Pin=U9-4
+Added Pin To Net: NetName=SENS9 Pin=U18-15
+Added Net: Name=SENS9
+Added Pin To Net: NetName=SENS10 Pin=U10-4
+Added Pin To Net: NetName=SENS10 Pin=U18-14
+Added Net: Name=SENS10
+Added Pin To Net: NetName=SENS11 Pin=U11-4
+Added Pin To Net: NetName=SENS11 Pin=U18-13
+Added Net: Name=SENS11
+Added Pin To Net: NetName=SENS12 Pin=U12-4
+Added Pin To Net: NetName=SENS12 Pin=U18-12
+Added Net: Name=SENS12
+Added Pin To Net: NetName=SENS13 Pin=U13-4
+Added Pin To Net: NetName=SENS13 Pin=U18-11
+Added Net: Name=SENS13
+Added Pin To Net: NetName=SENS14 Pin=U14-4
+Added Pin To Net: NetName=SENS14 Pin=U18-10
+Added Net: Name=SENS14
+Added Pin To Net: NetName=SENS15 Pin=U15-4
+Added Pin To Net: NetName=SENS15 Pin=U18-9
+Added Net: Name=SENS15
+Added Pin To Net: NetName=SENS16 Pin=U16-4
+Added Pin To Net: NetName=SENS16 Pin=U18-7
+Added Net: Name=SENS16
+Added Member To Class: ClassName=Sheet2 Member=Component HD1 IDC 8X2
+Added Member To Class: ClassName=Sheet2 Member=Component SPI1 IDC 8X2
+Added Member To Class: ClassName=Sheet2 Member=Component SPI2 IDC 8X2
+Added Member To Class: ClassName=Sheet2 Member=Component U17 SN74LVC138AD
+Added Member To Class: ClassName=Sheet2 Member=Component U18 SN74LVC138AD
