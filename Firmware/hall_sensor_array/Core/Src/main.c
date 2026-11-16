@@ -21,7 +21,14 @@ typedef struct { err_t err; uint32_t tx, rx; } fail_info_t;
 #define N_PER_BUS    8                  /* mỗi decoder 3->8 chọn 8 cảm biến */
 #define N_SENSOR     (N_BUS * N_PER_BUS)
 #define TX_BUF_SIZE  512                /* dòng dài nhất ~403 byte */
+/* ---- hiệu chuẩn (calib) ---- */
+#define CAL_AT_BOOT          1          /* 1 = tự calib sau khi khởi tạo (phải KHÔNG có nam châm gần mảng) */
+#define N_CAL                32         /* số lần quét lấy trung bình (~4.4 ms/lần -> ~140 ms) */
+#define CAL_MAX_SPREAD_CODES 400        /* max-min cho phép trong lúc calib (mã ADC; 400 ~ 1.2 mT ở dải 100 mT). Quá ngưỡng = có
+                                         * từ trường đang đổi -> bỏ calib của cảm biến đó. Xem cal_spread[] để chỉnh. */
+#define CAL_STALE_C          5.0f       /* lệch nhiệt độ so với lúc calib > ngưỡng này -> báo nên calib lại */
 
+#define MAG_FILTER_ALPHA    0.05f
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -64,6 +71,42 @@ static uint8_t  tx_sel;                 /* buffer sẽ được định dạng �
 static volatile uint8_t tx_busy;        /* 1 = DMA đang gửi */
 static uint32_t tx_timeouts, tx_drops, tx_polled;  /* tx_timeouts tăng => ngắt UART7 chưa bật (xem ghi chú) */
 volatile uint32_t prof_scan_us, prof_send_us, prof_cycle_us;
+
+static uint16_t temp_code[N_SENSOR];
+float Temp[4][4];                       /* nhiệt độ cảm biến (°C), cùng bố cục với Bx */
+
+///* Calib: B_hiệu_chuẩn = B_đo - offset_calib - TC * (T - T_lúc_calib).
+// * Datasheet (A1): offset tới ±350 uT, trôi theo nhiệt độ tối đa ±5 uT/°C (X,Y) và ±1.5 uT/°C (Z), khác nhau từng chip.
+// * TC từng trục để 0 cho tới khi bạn đo được (calib ở 2 nhiệt độ khác nhau: TC = (offset2 - offset1) / (T2 - T1)). */
+//static float    cal_off[N_SENSOR][3];   /* offset (mT) */
+//static float    cal_T0[N_SENSOR];       /* nhiệt độ (°C) lúc calib */
+//static uint16_t cal_mask;               /* bit i = cảm biến i đang được trừ offset */
+//static uint16_t cal_fail;               /* bit i = lần calib gần nhất của cảm biến i thất bại */
+//static uint16_t stale_mask;             /* bit i = nên calib lại: lệch nhiệt độ > CAL_STALE_C hoặc calib gần nhất thất bại */
+//static uint16_t cal_spread[N_SENSOR];   /* max-min lớn nhất trong 3 trục ở lần calib gần nhất (mã ADC) */
+//static const float OFFSET_TC_MT_PER_C[3] = { 0.0f, 0.0f, 0.0f };
+// Offset 3 trục (uT)
+static const float Bx_off_uT [4][4] = {
+		{-292.3099878f, -209.7119768f, -229.148102f, -324.7933995f},
+		{-142.2420416f, -310.5332383f, -218.3523905f, -180.1074509f},
+		{-114.0985383f, -134.9715489f, -135.6332811f, -166.1149382f},
+		{-175.531566f, -193.8048237f, -126.3758088f, -54.68084628f}
+};
+static const float By_off_uT[4][4] = {
+		{-190.6557176f, -157.3706336f, 158.1871728f, 96.77385782f},
+		{-116.9784059f, -189.4633348f, -133.8514609f, -53.59005495f},
+		{-84.87582941f, -114.4652699f, -84.37071595f, -94.00721174f},
+		{-97.52272317f, -99.33982295f, -5.988487181f, -135.1579457f}
+};
+static const float Bz_off_uT[4][4] = {
+		{-386.1719892f, -313.6998559f, -180.1733321f, -166.5074572f},
+		{-270.3282975f, -233.6224999f, -215.1137378f, -187.0204982f},
+		{-199.5704911f, -184.3997371f, -158.954313f, -203.7751881f},
+		{-167.509972f, -201.7141052f, -162.9472849f, -178.4738341f}
+};
+
+static float B_filter[N_SENSOR][3];
+static uint8_t filter_initialized[N_SENSOR][3];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -181,6 +224,7 @@ static uint16_t ring_lap(uint8_t bus, lap_job_t job, uint8_t arg)
 static err_t job_init   (TMAG5170_t *d, uint8_t idx, uint8_t step) { (void)idx; return TMAG5170_InitStep(d, step); }
 static err_t job_trigger(TMAG5170_t *d, uint8_t idx, uint8_t arg)  { (void)idx; (void)arg; return TMAG5170_Trigger(d); }
 static err_t job_axis   (TMAG5170_t *d, uint8_t idx, uint8_t axis) { return TMAG5170_ReadAxis(d, axis, &raw_code[idx][axis]); }
+static err_t job_temp   (TMAG5170_t *d, uint8_t idx, uint8_t arg)  { (void)arg; return TMAG5170_ReadTemp(d, &temp_code[idx]); }
 
 /* Khởi tạo 16 cảm biến: từng bước cấu hình chạy hết một vòng trên bus 0 rồi bus 1 */
 static void TMAG5170_InitAll(void)
@@ -202,6 +246,24 @@ static void TMAG5170_InitAll(void)
     }
 }
 
+//EMA Filter:
+static inline float Magnetic_Filter(
+    uint8_t sensor,
+    uint8_t axis,
+    float input)
+{
+    if (!filter_initialized[sensor][axis]) {
+        B_filter[sensor][axis] = input;
+        filter_initialized[sensor][axis] = 1;
+    } else {
+        B_filter[sensor][axis] +=
+            MAG_FILTER_ALPHA *
+            (input - B_filter[sensor][axis]);
+    }
+
+    return B_filter[sensor][axis];
+}
+
 /* Quét 16 cảm biến -> Bx, By, Bz (mT). Cảm biến lỗi: giữ giá trị cũ, bật bit trong err_mask.
  * Vòng 1: trigger cả 16 cảm biến; chờ chuyển đổi; vòng 2..4: đọc X, Y, Z. */
 static void Scan16(void)
@@ -214,13 +276,33 @@ static void Scan16(void)
      delay_us(3000);                                  /* ~2.44 ms với 32x, 3 trục */
      for (uint8_t axis = 0; axis < 3; axis++)
          for (uint8_t b = 0; b < N_BUS; b++) fail |= ring_lap(b, job_axis, axis);
-
-    for (uint8_t i = 0; i < N_SENSOR; i++) {
+#if TMAG_TEMP_EN
+    for (uint8_t b = 0; b < N_BUS; b++) fail |= ring_lap(b, job_temp, 0);
+#endif
+    for (uint8_t i = 0; i < N_SENSOR; i++)
+    {
         if (fail & (1u << i)) continue;
         const TMAG5170_t *d = &tmag[i / N_PER_BUS];
-        Bx[i / 4][i % 4] = TMAG5170_CodeToMT(d, raw_code[i][0]);
-        By[i / 4][i % 4] = TMAG5170_CodeToMT(d, raw_code[i][1]);
-        Bz[i / 4][i % 4] = TMAG5170_CodeToMT(d, raw_code[i][2]);
+#if TMAG_TEMP_EN
+        float t = TMAG5170_CodeToC(temp_code[i]);
+        Temp[i / 4][i % 4] = t;
+ //       if ((cal_mask & (1u << i)) && (dT > CAL_STALE_C || dT < -CAL_STALE_C)) stale |= (uint16_t)(1u << i);
+#endif
+        float bx_raw =
+            TMAG5170_CodeToMT(d, raw_code[i][0])
+            - Bx_off_uT[i / 4][i % 4] / 1000.0f;
+
+        float by_raw =
+            TMAG5170_CodeToMT(d, raw_code[i][1])
+            - By_off_uT[i / 4][i % 4] / 1000.0f;
+
+        float bz_raw =
+            TMAG5170_CodeToMT(d, raw_code[i][2])
+            - Bz_off_uT[i / 4][i % 4] / 1000.0f;
+
+        Bx[i / 4][i % 4] = Magnetic_Filter(i, 0, bx_raw);
+        By[i / 4][i % 4] = Magnetic_Filter(i, 1, by_raw);
+        Bz[i / 4][i % 4] = Magnetic_Filter(i, 2, bz_raw);
     }
     err_mask = fail;
 }
@@ -263,21 +345,51 @@ static void uart_wait_idle(void)
 static void Send_UART(void)
 {
     char *buf = tx_buf[tx_sel];
-    int n = snprintf(buf, TX_BUF_SIZE, "B,%lu,%04X", (unsigned long)frame_no++, (unsigned)err_mask);
+    int n = 0;
+    int w;
+
+    // -------- Bx --------
+    n = snprintf(buf, TX_BUF_SIZE, "Bx");
     n = append_array(buf, n, Bx);
+
+    w = snprintf(buf + n, TX_BUF_SIZE - n, "\r\n");
+    n += w;
+
+    // -------- By --------
+    w = snprintf(buf + n, TX_BUF_SIZE - n, "By");
+    n += w;
+
     n = append_array(buf, n, By);
+
+    w = snprintf(buf + n, TX_BUF_SIZE - n, "\r\n");
+    n += w;
+
+    // -------- Bz --------
+    w = snprintf(buf + n, TX_BUF_SIZE - n, "Bz");
+    n += w;
+
     n = append_array(buf, n, Bz);
-    if (n > TX_BUF_SIZE - 3) n = TX_BUF_SIZE - 3;
-    buf[n++] = '\r';
-    buf[n++] = '\n';
+
+    w = snprintf(buf + n, TX_BUF_SIZE - n, "\r\n");
+    n += w;
+
+    if (n <= 0 || n >= TX_BUF_SIZE) {
+        tx_drops++;
+        return;
+    }
 
     uart_wait_idle();
+
     tx_busy = 1;
-    if (HAL_UART_Transmit_DMA(&huart7, (uint8_t *)buf, (uint16_t)n) != HAL_OK) {
+
+    if (HAL_UART_Transmit_DMA(&huart7,
+                              (uint8_t *)buf,
+                              (uint16_t)n) != HAL_OK) {
         tx_busy = 0;
         tx_drops++;
         return;
     }
+
     tx_sel ^= 1u;
 }
 /* USER CODE END 0 */

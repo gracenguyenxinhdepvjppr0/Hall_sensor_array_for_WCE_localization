@@ -20,30 +20,52 @@
 
 /*  Địa chỉ thanh ghi */
 #define DEVICE_CONFIG  0x00
-#define SENSOR_CONFIG  0x01
-#define SYSTEM_CONFIG  0x02
-#define CONV_STATUS    0x08
-#define X_CH_RESULT    0x09
-#define Y_CH_RESULT    0x0A
-#define Z_CH_RESULT    0x0B
-#define AFE_STATUS     0x0D
-#define SYS_STATUS     0x0E
-#define TEST_CONFIG    0x0F
+#define SENSOR_CONFIG  		0x01
+#define SYSTEM_CONFIG  		0x02
+#define CONV_STATUS    		0x08
+#define X_CH_RESULT    		0x09
+#define Y_CH_RESULT    		0x0A
+#define Z_CH_RESULT   	 	0x0B
+#define TEMP_RESULT	   		0x0C
+#define AFE_STATUS     		0x0D
+#define SYS_STATUS     		0x0E
+#define TEST_CONFIG    		0x0F
+#define MAG_OFFSET_CONFIG 	0x12
 
 /* DEVICE_CONFIG (0x00) */
 #define CONV_AVG(n)        ((uint16_t)((n) & 7u) << 12)  /* 0=1x ... 5=32x */
 #define TEMPCO_NDFEB       (1u << 8)                     /* MAG_TEMPCO = 01b: 0.12 %/°C */
 #define MODE_ACTIVE_CONT   (2u << 4)                     /* OPERATING_MODE = 010b */
 #define MODE_ACTIVE_TRIG   (3u << 4)                     /* OPERATING_MODE = 011b */
+#define T_CH_EN			   (1u << 3)
+/* ---------- SENSOR_CONFIG (0x01) ---------- */
+#define MAG_CH_XYZ         (7u << 6)                     /* MAG_CH_EN = 0111b */
+#define RANGE_MAX_XYZ      ((2u << 4) | (2u << 2) | 2u)  /* Z/Y/X_RANGE = 10b: ±100 mT (A1) / ±300 mT (A2) */
 
+/* 1 = đọc nhiệt độ từng cảm biến. Kênh nhiệt độ là "kênh thêm": với CONV_AVG = 32x cộng thêm 32 x 25 us = 800 us */
+#define TMAG_TEMP_EN       0
+
+#define TMAG_OFFSET_EN	   1
+/* Công thức (3) datasheet: T = TSENS_T0 + (TADC_T - TADC_T0) / TADC_RES  (giá trị typ; TSENS_T0 23..27 C, TADC_RES 58.2..61.8) */
+#define TMAG_TSENS_T0_C    25.0f
+#define TMAG_TADC_T0       17522.0f
+#define TMAG_TADC_RES      60.0f                         /* LSB / °C */
 /* ---------- SENSOR_CONFIG (0x01) ---------- */
 #define MAG_CH_XYZ         (7u << 6)                     /* MAG_CH_EN = 0111b */
 #define RANGE_MAX_XYZ      ((2u << 4) | (2u << 2) | 2u)  /* Z/Y/X_RANGE = 10b: ±100 mT (A1) / ±300 mT (A2) */
 
 /* ---------- Thời gian chuyển đổi: CONV_AVG = 32x, 3 trục ---------- */
-/* 825 us (trục đầu) + 2 x 800 us + 10 us khởi tạo ≈ 2.44 ms  -> chờ 3 ms */
+/* 10 us khởi tạo + 825 us (kênh đầu) + 800 us mỗi kênh thêm (32x):
+ *   3 trục           = 2435 us (typ), tối đa ~2.6 ms  (dao động nội 3.0..3.5 MHz, typ 3.2)
+ *   3 trục + nhiệt độ = 3235 us (typ), tối đa ~3.45 ms
+ * CONV_WAIT_US tính từ khi CS của khung trigger lên cao, dư ~7..8% so với trường hợp xấu nhất. */
+#if TMAG_TEMP_EN
+#define CONV_WAIT_MS       4
+#define CONV_WAIT_US       3700
+#else
 #define CONV_WAIT_MS       3
-
+#define CONV_WAIT_US       2800
+#endif
 typedef enum {
     TMAG_OK = 0,
     TMAG_ERR_SPI,
@@ -59,7 +81,7 @@ typedef enum {
 } tmag_mode_t;         /* không đặt tên mode_t: trùng với mode_t của newlib (<sys/types.h>) */
 
 /* ±range của dải đo cao nhất (mT): TMAG5170A1 = 100, TMAG5170A2 = 300 */
-#define TMAG_RANGE_MT      100.0f
+#define RANGE_MT      100.0f
 
 typedef void (*cs_fn)(bool select);   /* select=true -> kéo CS xuống thấp */
 
@@ -91,7 +113,10 @@ void  TMAG5170_InitBegin(TMAG5170_t *d, SPI_HandleTypeDef *hspi, cs_fn cs, tmag_
 err_t TMAG5170_InitStep(TMAG5170_t *d, uint8_t step);                 /* 1 khung SPI / bước */
 err_t TMAG5170_Trigger(TMAG5170_t *d);                                /* bắt đầu 1 bộ chuyển đổi X,Y,Z (chế độ TRIGGER) */
 err_t TMAG5170_ReadAxis(TMAG5170_t *d, uint8_t axis, int16_t *code);  /* axis: 0=X 1=Y 2=Z */
-float TMAG5170_CodeToMT(const TMAG5170_t *d, int16_t code);
+err_t TMAG5170_ReadTemp(TMAG5170_t *d, uint16_t *code);
+//err_t TMAG5170_ReadOffset(TMAG5170_t *d, uint16_t *code);
 
+float TMAG5170_CodeToMT(const TMAG5170_t *d, int16_t code);
+float TMAG5170_CodeToC(uint16_t code);
 
 #endif /* INC_TMAG5170_H_ */

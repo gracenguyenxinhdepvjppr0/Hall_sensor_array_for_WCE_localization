@@ -66,7 +66,7 @@ static err_t reg_read(TMAG5170_t *d, uint8_t addr, uint16_t *val)
 static uint16_t dev_cfg_of(tmag_mode_t mode)
 {
     /* CONV_AVG=32x, bù nhiệt NdFeB, vào Active mode */
-    return (uint16_t)(CONV_AVG(5) | TEMPCO_NDFEB |
+    return (uint16_t)(CONV_AVG(5) | TEMPCO_NDFEB | (TMAG_TEMP_EN ? T_CH_EN : 0u) |
                       (mode == TRIGGER ? MODE_ACTIVE_TRIG : MODE_ACTIVE_CONT));
 }
 
@@ -75,7 +75,7 @@ void TMAG5170_InitBegin(TMAG5170_t *d, SPI_HandleTypeDef *hspi, cs_fn cs, tmag_m
     d->hspi       = hspi;
     d->cs         = cs;
     d->mode       = mode;
-    d->range_mT   = TMAG_RANGE_MT;       /* trước đây không được gán -> mT luôn sai/bằng 0 */
+    d->range_mT   = RANGE_MT;       /* trước đây không được gán -> mT luôn sai/bằng 0 */
     d->error_stat = false;
 }
 
@@ -138,12 +138,31 @@ err_t TMAG5170_ReadAxis(TMAG5170_t *d, uint8_t axis, int16_t *code)
     return TMAG_OK;
 }
 
+err_t TMAG5170_ReadTemp(TMAG5170_t *d, uint16_t *code)
+{
+    return reg_read(d, TEMP_RESULT, code);   /* DATA_TYPE = 0: 16 bit đầy đủ, không dấu (13.6k..26.2k trong -40..170 C) */
+}
+
+////err_t TMAG5170_ReadOffset(TMAG5170_t *d, uint16_t *code)
+//{
+//	return reg_read(d, MAG_OFFSET_CONFIG, code);
+//}
+
 /* Công thức (1) datasheet: B = code / 2^16 * 2*|BR| = code * BR / 32768 */
 float TMAG5170_CodeToMT(const TMAG5170_t *d, int16_t code)
 {
     return (float)code * d->range_mT / 32768.0f;
 }
 
+float TMAG5170_CodeToC(uint16_t code)
+{
+    return TMAG_TSENS_T0_C + ((float)code - TMAG_TADC_T0) / TMAG_TADC_RES;
+}
+
+float TMAG5170_CodeToOffset(const TMAG5170_t *d, uint16_t code)
+{
+	return (float)code * d->range_mT / 2048.0f;
+}
 /* ================= Đọc X, Y, Z ================= */
 err_t TMAG5170_read_XYZ(TMAG5170_t *d, xyz_t *out)
 {
