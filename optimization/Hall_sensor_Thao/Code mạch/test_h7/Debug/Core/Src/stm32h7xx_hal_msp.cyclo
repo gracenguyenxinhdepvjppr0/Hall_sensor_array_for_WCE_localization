@@ -1,0 +1,5 @@
+../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_ll_rcc.h:2895:22:LL_RCC_SetClockSource	1
+../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_ll_rcc.h:2924:22:LL_RCC_SetUSARTClockSource	1
+../Core/Src/stm32h7xx_hal_msp.c:63:6:HAL_MspInit	1
+../Core/Src/stm32h7xx_hal_msp.c:85:6:HAL_UART_MspInit	2
+../Core/Src/stm32h7xx_hal_msp.c:124:6:HAL_UART_MspDeInit	2
