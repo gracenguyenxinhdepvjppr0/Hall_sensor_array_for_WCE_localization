@@ -70,7 +70,7 @@ def plot_trajectories(trajectories, output_path, seed, show=True):
         ) from exc
 
     figure = plt.figure(figsize=(13, 10))
-    figure.suptitle(f"Robot trajectory visualization (random seed: {seed})")
+    figure.suptitle(f"Robot trajectory visualization")
 
     for index, (name, path) in enumerate(trajectories, start=1):
         if not path:

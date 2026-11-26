@@ -2,11 +2,9 @@
 
 > Tài liệu này áp dụng cho các script `robot_ABB_*.py` trong thư mục này và giao thức UART `CAPTURE` hiện tại. Mỗi pose hợp lệ thu 5 lần quét, mỗi lần gồm 16 giá trị Bx, 16 By và 16 Bz. Script lấy trung bình 5 lần và lưu 48 kênh cùng một `sample_id` với tọa độ robot.
 
-> **Đối chiếu tài liệu:** `DataCollection_Summary.md` còn mô tả một phiên bản thu cũ (25 sensor, UART binary 115200 baud và các tùy chọn CLI). Phần hướng dẫn hệ tọa độ/tool offset cho Robot Arm được tham khảo ở đó; số sensor, giao thức UART và lệnh chạy trong manual này lấy theo firmware và script hiện tại.
-
 ## 1. Kiểm tra trước khi bật hệ thống
 
-### Firmware và mảng cảm biến
+### Firmware và mảng cảm biến (hiện tại đã làm, skip đến bước sau)
 
 1. Build và nạp firmware `C:\Users\Admin\OneDrive\Documents\Hall_sensor_array\Git\Firmware\hall_sensor_array\Core\Src\main.c` có giao thức `CAPTURE` vào đúng board STM32.
 2. Cấp nguồn cho STM32 và mảng cảm biến; kiểm tra dây SPI, nguồn và mass chung.
@@ -27,7 +25,7 @@ Firmware này **không phát dữ liệu liên tục khi rảnh**. Chỉ thấy 
 
 Phần robot trong `DataCollection_Summary.md` mô tả đúng nguyên tắc: PC gửi pose, chờ robot báo đã tới, rồi mới thu cảm biến. Các thông số dưới đây được đối chiếu với các script hiện tại:
 
-1. **Kiểm tra hệ tọa độ và giới hạn quỹ đạo.** Tọa độ X/Y/Z trong script là millimeter. Mỗi quỹ đạo hiển thị pose đầu và các biên dạng độ lệch trên console; đối chiếu chúng với frame mà chương trình ABB nhận trước khi chạy. Với (x, y, z) là tọa độ trên FlexPendant ở Linear Mode: 
+1. **Kiểm tra hệ tọa độ và giới hạn quỹ đạo.** Tọa độ X/Y/Z trong script là millimeter. Mỗi quỹ đạo hiển thị pose đầu và các biên dạng độ lệch trên console; đối chiếu chúng với frame mà chương trình ABB nhận trước khi chạy. Với (x, y, z) là tọa độ trên FlexPendant ở Linear Mode sau khi đã calib quaternion bằng cách chạy file `move_to_one_point.py`: 
 
    | Quỹ đạo | Pose đầu tooltip (mm) | Giới hạn tương đối từ pose đầu (mm) |
    |---|---|---|
@@ -55,7 +53,7 @@ Phần robot trong `DataCollection_Summary.md` mô tả đúng nguyên tắc: PC
    Quaternion trên socket dùng thứ tự scalar-first `(qw,qx,qy,qz)`; không đổi thành thứ tự khác trong chương trình ABB. Orientation tham chiếu hiện tại trong các script là `(0,0,1,0)`; một số quỹ đạo tạo thêm orientation quanh hướng tham chiếu.
 4. **Kiểm tra hướng nam châm.** Code giả định trục nam châm trong tool frame là `m_tool = [1,0,0]`, sau đó tính `m_world = R(q)m_tool` và lưu `mx,my,mz`. Xác nhận trục X của tool thực sự trùng chiều quy ước cực nam châm trước khi dùng các cột hướng trong CSV.
 5. **Đặt tốc độ ở controller ABB.** Script Python chỉ gửi pose và chờ phản hồi; tốc độ, gia tốc, giới hạn khớp và WorkObject không được đặt trong script. Đặt các giá trị phù hợp ở chương trình/controller robot. Khi bắt đầu thu, giám sát chuyển động và thử ở tốc độ thấp.
-6. **Xem trước đường đi nếu cần.** Có thể chạy `python .\visualize_trajectories.py` để mở đồ thị bốn quỹ đạo trong hệ tọa độ mm. Lệnh này không kết nối robot/UART và không mô phỏng TCP offset, giới hạn khớp hoặc va chạm; vẫn phải kiểm tra an toàn trên robot.
+6. **Xem trước đường đi nếu cần.** Có thể chạy `python .\visualize_trajectories.py` để mở đồ thị bốn quỹ đạo trong hệ tọa độ mm. Lệnh này không kết nối robot/UART và không mô phỏng TCP offset, giới hạn khớp hoặc va chạm; vẫn phải kiểm tra an toàn trên robot. Kiểm tra ROI của 4 quỹ đạo có trùng nhau hay k. 
 
 Sau khi gửi từng pose, Python chờ tối đa 20 giây cho phản hồi robot, rồi chờ thêm khoảng 2–2.5 giây để cơ khí ổn định trước khi yêu cầu STM32 đo. Server phía ABB cần chỉ gửi phản hồi trong ngoặc vuông sau khi chuyển động hoàn tất; code hiện tại chỉ kiểm tra có cặp ngoặc vuông, không xác thực nội dung ACK. Tọa độ trong CSV là pose tooltip đã ra lệnh, không phải vị trí encoder độc lập đọc từ robot.
 
@@ -127,13 +125,6 @@ python ".\robot_ABB_Lissajous Curve.py"
 python .\robot_ABB_random.py
 ```
 
-Tọa độ điểm đầu của các quỹ đạo: Với (x, y, z) là tọa độ sau khi calib quat
-1. Grid: (x - 30, y - 30, z + 20) mm
-2. Helical: (x - 45, y + 45, z + 20) mm 
-3. Lissajous: (x - 45, y + 45, z + 20) mm 
-
-Giới hạn vùng ROI: 
-1. Helical: 
 Trình tự chạy của script: 
 
 1. Kết nối TCP tới robot và mở UART.
