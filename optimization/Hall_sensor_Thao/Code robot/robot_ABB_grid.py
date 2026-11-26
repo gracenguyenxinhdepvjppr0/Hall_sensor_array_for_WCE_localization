@@ -2,11 +2,15 @@ import socket
 import time
 import re
 import math
+import importlib.util
+import sys
 import numpy as np
 import serial
 import csv
 import os
 from scipy.spatial.transform import Rotation as R
+from uart_frame_utils import (NUM_SAMPLES, acquire_sensor_average,
+                              magnetic_csv_headers, open_sensor_uart)
 
 # ==============================================================================
 # ROBOT CONFIG
@@ -21,14 +25,11 @@ UART_PORT    = "COM5"
 UART_BAUD    = 921600 #check again
 UART_TIMEOUT = 2
 
-SENSOR_ROWS = 16
-SENSOR_COLS = 5 
-
 # ==============================================================================
 # FILE OUTPUT
 # ==============================================================================
-COORD_FILE  = r"C:\Workspace\Documents\2025.2\Final project\Data_8_2026\Data\Grid_points_coordinates_2.csv"
-SENSOR_FILE = r"C:\Workspace\Documents\2025.2\Final project\Data_8_2026\Data\Grid_data_2.csv"
+COORD_FILE  = r"C:\Users\Admin\OneDrive\Documents\Hall_sensor_array\Git\optimization\Hall_sensor_Thao\Code robot\Grid_points_coordinates_2.csv"
+SENSOR_FILE = r"C:\Users\Admin\OneDrive\Documents\Hall_sensor_array\Git\optimization\Hall_sensor_Thao\Code robot\Grid_data_2.csv"
 
 # ==============================================================================
 # TOOL OFFSET
@@ -42,9 +43,9 @@ TOOL_OFFSET_Z = 98.5
 # chú ý cao hơn mảng sensor một khoảng nhất định để tránh va chạm
 # ============================================================================== 
 # check lại hết các thông số vị trí
-XC = -45 #sensor [0][0]
-YC = 635.0
-ZC = -63.5 #cách 2 cm
+XC = 618.15 #sensor [0][0]
+YC = 29.99995
+ZC = -14.94 #cách 2 cm
 
 # ==============================================================================
 # GRID CONFIG
@@ -55,11 +56,6 @@ GRID_Z = 6
 
 STEP_XY = 20.0 #mm
 STEP_Z  = 5.0 #mm
-
-# Chỉ thu trên hàng 8 và cột 8 của lưới 8x8 (tổng 15 điểm: 8 + 7)
-# Giữ nguyên khoảng cách 20 mm và 8 hướng quay / 6 lớp z
-GRID_ROW_TARGET = 8  # mục tiêu hàng 8 (index 7 trong Python)
-GRID_COL_TARGET = 8  # mục tiêu cột 8 (index 7 trong Python)
 
 # Chạy từ đầu
 START_POINT = 1
@@ -83,53 +79,11 @@ MAGNET_DIR_TOOL = np.array([1.0,0.0,0.0])
 # UART FUNCTIONS
 # ==============================================================================
 def open_uart():
-    ser = serial.Serial(UART_PORT,UART_BAUD,timeout=UART_TIMEOUT)
-    time.sleep(1)
-    print("UART connected")
-    return ser
+    return open_sensor_uart(UART_PORT, UART_BAUD, UART_TIMEOUT)
 
 
-def acquire_data_uart(ser):
-    ser.reset_input_buffer()
-    ser.write(b"START")
-
-    data_matrix = [[] for _ in range(SENSOR_COLS)]
-    current_col = 0
-
-    while True:
-
-        line = ser.readline().decode(errors="ignore").strip()
-
-        if line == "END":
-            break
-
-        try:
-            value = float(line)
-        except:
-            continue
-
-        if current_col < SENSOR_COLS:
-            data_matrix[current_col].append(value)
-
-            if len(data_matrix[current_col]) == SENSOR_ROWS:
-                current_col += 1
-
-        if current_col == SENSOR_COLS:
-            break
-
-    # ===== kiểm tra dữ liệu =====
-
-    for i,col in enumerate(data_matrix):
-
-        if len(col) != SENSOR_ROWS:
-
-            print(f"[UART WARNING] column {i+1} received {len(col)} samples")
-
-            return None
-
-    data_matrix = np.array(data_matrix)
-
-    return np.mean(data_matrix, axis=0)
+def acquire_data_uart(ser, sample_id):
+    return acquire_sensor_average(ser, sample_id, NUM_SAMPLES, UART_TIMEOUT)
 
 # ==============================================================================
 # MATH
@@ -194,21 +148,105 @@ def magnet_angles_from_vector(m):
 # TRAJECTORY
 # ==============================================================================
 def generate_3d_grid():
-    path=[]
-    target_rows = set([GRID_ROW_TARGET - 1])
-    target_cols = set([GRID_COL_TARGET - 1])
+    """Return every point in the 8x8 grid at each configured Z layer."""
+    if GRID_X < 1 or GRID_Y < 1 or GRID_Z < 1:
+        raise ValueError("GRID_X, GRID_Y, and GRID_Z must all be positive")
+
+    path = []
 
     for iz in range(GRID_Z):
-        z=ZC+iz*STEP_Z
-        for ix in range(GRID_X):
-            x=XC+ix*STEP_XY
-            for iy in range(GRID_Y):
-                y=YC+iy*STEP_XY
+        z = ZC + iz * STEP_Z
+        x_indices = range(GRID_X) if iz % 2 == 0 else range(GRID_X - 1, -1, -1)
 
-                # Chỉ giữ các điểm nằm trên hàng 8 và cột 8
-                if ix == GRID_COL_TARGET - 1 or iy == GRID_ROW_TARGET - 1:
-                    path.append((x,y,z))
+        for x_sequence, ix in enumerate(x_indices):
+            x = XC + ix * STEP_XY
+            y_forward = (x_sequence + iz) % 2 == 0
+            y_indices = range(GRID_Y) if y_forward else range(GRID_Y - 1, -1, -1)
+
+            for iy in y_indices:
+                y = YC + iy * STEP_XY
+                # Do not filter edges: include all interior and boundary points.
+                path.append((x, y, z))
+
+    expected_points = GRID_X * GRID_Y * GRID_Z
+    if len(path) != expected_points:
+        raise RuntimeError(
+            f"Grid is incomplete: generated {len(path)} of {expected_points} points"
+        )
+
     return path
+
+
+def _load_trajectory_script(file_name, module_name):
+    """Load another trajectory module without entering its robot main loop."""
+    source_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_name)
+    spec = importlib.util.spec_from_file_location(module_name, source_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot load trajectory script: {source_path}")
+
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def visualize_all_trajectories(seed=2):
+    """Plot all four waypoint paths without connecting to robot or UART."""
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError as exc:
+        raise SystemExit(
+            "Matplotlib is required for visualization. Install it with: "
+            "python -m pip install matplotlib"
+        ) from exc
+
+    grid = sys.modules[__name__]
+    helix = _load_trajectory_script("robot_ABB_helical.py", "trajectory_helical")
+    lissajous = _load_trajectory_script(
+        "robot_ABB_Lissajous Curve.py", "trajectory_lissajous"
+    )
+    random_path = _load_trajectory_script(
+        "robot_ABB_random.py", "trajectory_random"
+    )
+
+    np.random.seed(seed)
+    trajectories = [
+        ("Grid", grid.generate_3d_grid()),
+        ("Helix", helix.generate_helical_path()),
+        ("Lissajous", lissajous.generate_lissajous_path()),
+        ("Random", random_path.generate_random_points()),
+    ]
+
+    figure = plt.figure(figsize=(13, 10))
+    figure.suptitle(f"Robot trajectory waypoints (random seed: {seed})")
+    for index, (name, path) in enumerate(trajectories, start=1):
+        if not path:
+            raise ValueError(f"Trajectory '{name}' contains no points")
+
+        xs, ys, zs = zip(*path)
+        axis = figure.add_subplot(2, 2, index, projection="3d")
+        line, = axis.plot(xs, ys, zs, linewidth=1.4, label="Path")
+        axis.scatter(xs, ys, zs, color=line.get_color(), s=8, alpha=0.55)
+        axis.scatter(xs[0], ys[0], zs[0], color="green", marker="^", s=55,
+                     edgecolors="black", linewidths=0.5, label="Start")
+        axis.scatter(xs[-1], ys[-1], zs[-1], color="red", marker="s", s=45,
+                     edgecolors="black", linewidths=0.5, label="End")
+        axis.set_title(f"{name} ({len(path)} points)")
+        axis.set_xlabel("X (mm)")
+        axis.set_ylabel("Y (mm)")
+        axis.set_zlabel("Z (mm)")
+        axis.view_init(elev=25, azim=-55)
+        axis.legend(loc="best", fontsize=8)
+        spans = (max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs))
+        axis.set_box_aspect(tuple(max(span, 1.0) for span in spans))
+
+    figure.tight_layout(rect=(0, 0, 1, 0.96))
+    output_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "trajectory_visualization.png"
+    )
+    figure.savefig(output_path, dpi=180, bbox_inches="tight")
+    print(f"Saved trajectory figure: {output_path}")
+    plt.show()
 
 # ============================================================================
 # ORIENTATION SET
@@ -299,6 +337,10 @@ def wait_robot(client,timeout=20):
 # ==============================================================================
 if __name__=="__main__":
 
+    if "--visualize-trajectories" in sys.argv[1:]:
+        visualize_all_trajectories()
+        raise SystemExit(0)
+
     client=None
     ser=None
 
@@ -338,8 +380,8 @@ if __name__=="__main__":
         coord_writer=csv.writer(coord_file)
         sensor_writer=csv.writer(sensor_file)
 
-        coord_writer.writerow(["x","y","z","pitch","yaw","mx","my","mz"])
-        sensor_writer.writerow([f"sensor_{i+1}" for i in range(SENSOR_ROWS)])
+        coord_writer.writerow(["sample_id","x","y","z","pitch","yaw","mx","my","mz"])
+        sensor_writer.writerow(["sample_id"] + magnetic_csv_headers())
 
         # warmup
         first=path[0]
@@ -395,26 +437,45 @@ if __name__=="__main__":
 
                 clear_socket_buffer(client)
 
+                # Measure one pose from command send through both CSV flushes.
+                pose_start = time.perf_counter()
                 send_pose(client,tcp[0],tcp[1],tcp[2],quat)
 
-                if not wait_robot(client):
+                robot_reached = wait_robot(client)
+                robot_wait_s = time.perf_counter() - pose_start
+                if not robot_reached:
 
                     print("Robot timeout")
+                    print(
+                        f"[TIMING] sample_id={sample_id} robot_wait={robot_wait_s:.3f}s "
+                        f"total={robot_wait_s:.3f}s status=ROBOT_TIMEOUT"
+                    )
                     continue
 
+                settle_start = time.perf_counter()
                 if i==0:
                     time.sleep(POINT_DELAY)
                 else:
                     time.sleep(ANGLE_DELAY)
+                settle_s = time.perf_counter() - settle_start
 
                 # =============================
                 # SENSOR DATA
                 # =============================
 
-                avg_data=acquire_data_uart(ser)
+                uart_start = time.perf_counter()
+                avg_data=acquire_data_uart(ser, sample_id)
+                uart_capture_s = time.perf_counter() - uart_start
                 if avg_data is None:
-                    print("Sensor read failed → skipping sample")
-                    continue
+                    total_pose_s = time.perf_counter() - pose_start
+                    print(
+                        f"[TIMING] sample_id={sample_id} robot_wait={robot_wait_s:.3f}s "
+                        f"settle={settle_s:.3f}s uart={uart_capture_s:.3f}s "
+                        f"total={total_pose_s:.3f}s status=UART_ERROR"
+                    )
+                    raise RuntimeError(
+                        f"UART capture failed for sample {sample_id}; stopping trajectory"
+                    )
                 # magnet orientation
                 m_world = magnet_vector_world(quat)
 
@@ -424,16 +485,25 @@ if __name__=="__main__":
 
                 # print("Sensor:",np.round(avg_data,4))
 
+                csv_start = time.perf_counter()
                 coord_writer.writerow([
+                    sample_id,
                     tx/1000.0, ty/1000.0, tz/1000.0, # chuyển sang mét khi lưu file 
                     pitch,yaw,
                     mx,my,mz
                 ])
 
-                sensor_writer.writerow(avg_data)
+                sensor_writer.writerow([sample_id, *avg_data])
 
                 coord_file.flush()
                 sensor_file.flush()
+                csv_write_s = time.perf_counter() - csv_start
+                total_pose_s = time.perf_counter() - pose_start
+                print(
+                    f"[TIMING] sample_id={sample_id} robot_wait={robot_wait_s:.3f}s "
+                    f"settle={settle_s:.3f}s uart={uart_capture_s:.3f}s "
+                    f"csv={csv_write_s:.3f}s total={total_pose_s:.3f}s"
+                )
 
         print("\nScan finished")
 

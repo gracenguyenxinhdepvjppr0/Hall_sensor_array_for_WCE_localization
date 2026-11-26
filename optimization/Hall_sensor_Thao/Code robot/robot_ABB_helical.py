@@ -7,6 +7,8 @@ import serial
 import csv
 import os
 from scipy.spatial.transform import Rotation as R
+from uart_frame_utils import (NUM_SAMPLES, acquire_sensor_average,
+                              magnetic_csv_headers, open_sensor_uart)
 
 # ==============================================================================
 # ROBOT CONFIG
@@ -21,14 +23,11 @@ UART_PORT    = "COM5"
 UART_BAUD    = 921600 #check again
 UART_TIMEOUT = 2
 
-SENSOR_ROWS = 64
-SENSOR_COLS = 5
-
 # ==============================================================================
 # FILE OUTPUT
 # ==============================================================================
-COORD_FILE  = r"C:\Workspace\Documents\2025.2\Final project\Data_8_2026\Data\Helix_points_coordinates_2.csv"
-SENSOR_FILE = r"C:\Workspace\Documents\2025.2\Final project\Data_8_2026\Data\Helix_data_2.csv"
+COORD_FILE  = r"C:\Users\Admin\OneDrive\Documents\Hall_sensor_array\Git\optimization\Hall_sensor_Thao\Code robot\Helix_points_coordinates_2.csv"
+SENSOR_FILE = r"C:\Users\Admin\OneDrive\Documents\Hall_sensor_array\Git\optimization\Hall_sensor_Thao\Code robot\Helix_data_2.csv"
 
 # ==============================================================================
 # TOOL OFFSET
@@ -76,57 +75,11 @@ MAGNET_DIR_TOOL = np.array([1.0,0.0,0.0])
 # UART FUNCTIONS
 # ==============================================================================
 def open_uart():
-
-    ser = serial.Serial(UART_PORT,UART_BAUD,timeout=UART_TIMEOUT)
-    time.sleep(1)
-
-    print("UART connected")
-
-    return ser
+    return open_sensor_uart(UART_PORT, UART_BAUD, UART_TIMEOUT)
 
 
-def acquire_data_uart(ser):
-
-    ser.reset_input_buffer()
-    ser.write(b"START")
-
-    data_matrix=[[] for _ in range(SENSOR_COLS)]
-
-    current_col=0
-
-    while True:
-
-        line=ser.readline().decode(errors="ignore").strip()
-
-        if line=="END":
-            break
-
-        try:
-            value=float(line)
-        except:
-            continue
-
-        if current_col<SENSOR_COLS:
-
-            data_matrix[current_col].append(value)
-
-            if len(data_matrix[current_col])==SENSOR_ROWS:
-                current_col+=1
-
-        if current_col==SENSOR_COLS:
-            break
-
-    for i,col in enumerate(data_matrix):
-
-        if len(col)!=SENSOR_ROWS:
-
-            print(f"[UART WARNING] column {i+1} received {len(col)} samples")
-
-            return None
-
-    data_matrix=np.array(data_matrix)
-
-    return np.mean(data_matrix,axis=0)
+def acquire_data_uart(ser, sample_id):
+    return acquire_sensor_average(ser, sample_id, NUM_SAMPLES, UART_TIMEOUT)
 
 # ==============================================================================
 # MATH
@@ -325,8 +278,8 @@ if __name__=="__main__":
         coord_writer=csv.writer(coord_file)
         sensor_writer=csv.writer(sensor_file)
 
-        coord_writer.writerow(["x","y","z","pitch","yaw","mx","my","mz"])
-        sensor_writer.writerow([f"sensor_{i+1}" for i in range(SENSOR_ROWS)])
+        coord_writer.writerow(["sample_id","x","y","z","pitch","yaw","mx","my","mz"])
+        sensor_writer.writerow(["sample_id"] + magnetic_csv_headers())
 
         # warmup
 
@@ -374,31 +327,59 @@ if __name__=="__main__":
 
             clear_socket_buffer(client)
 
+            # Measure one pose from command send through both CSV flushes.
+            pose_start = time.perf_counter()
             send_pose(client,tcp[0],tcp[1],tcp[2],quat)
 
-            if not wait_robot(client):
+            robot_reached = wait_robot(client)
+            robot_wait_s = time.perf_counter() - pose_start
+            if not robot_reached:
 
                 print("Robot timeout")
+                print(
+                    f"[TIMING] sample_id={sample_id} robot_wait={robot_wait_s:.3f}s "
+                    f"total={robot_wait_s:.3f}s status=ROBOT_TIMEOUT"
+                )
                 continue
 
+            settle_start = time.perf_counter()
             time.sleep(POINT_DELAY)
+            settle_s = time.perf_counter() - settle_start
             
-            avg_data=acquire_data_uart(ser)
+            uart_start = time.perf_counter()
+            avg_data=acquire_data_uart(ser, sample_id)
+            uart_capture_s = time.perf_counter() - uart_start
 
             if avg_data is None:
-                print("Sensor read failed")
-                continue
+                total_pose_s = time.perf_counter() - pose_start
+                print(
+                    f"[TIMING] sample_id={sample_id} robot_wait={robot_wait_s:.3f}s "
+                    f"settle={settle_s:.3f}s uart={uart_capture_s:.3f}s "
+                    f"total={total_pose_s:.3f}s status=UART_ERROR"
+                )
+                raise RuntimeError(
+                    f"UART capture failed for sample {sample_id}; stopping trajectory"
+                )
 
+            csv_start = time.perf_counter()
             coord_writer.writerow([
+                sample_id,
                 tx/1000.0, ty/1000.0, tz/1000.0, # chuyển sang mét khi lưu file
                 pitch,yaw,
                 mx,my,mz
             ])
 
-            sensor_writer.writerow(avg_data)
+            sensor_writer.writerow([sample_id, *avg_data])
 
             coord_file.flush()
             sensor_file.flush()
+            csv_write_s = time.perf_counter() - csv_start
+            total_pose_s = time.perf_counter() - pose_start
+            print(
+                f"[TIMING] sample_id={sample_id} robot_wait={robot_wait_s:.3f}s "
+                f"settle={settle_s:.3f}s uart={uart_capture_s:.3f}s "
+                f"csv={csv_write_s:.3f}s total={total_pose_s:.3f}s"
+            )
 
         print("\nScan finished")
 

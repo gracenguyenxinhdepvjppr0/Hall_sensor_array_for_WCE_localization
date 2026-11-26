@@ -13,13 +13,14 @@ import os
 # ==============================================================================
 # Absolute robot-frame coordinate of Sensor 1 (top-left), in meters. 
 # Lấy tọa độ thật nhập vào đây 
-SENSOR1_X_ABS = -0.045  # m = -45 mm
-SENSOR1_Y_ABS =  0.635  # m = 635 mm
-SENSOR1_Z_ABS = -0.0835  # m = -83.5 mm
+SENSOR1_X_ABS = -0.00005  # m = -45 mm
+SENSOR1_Y_ABS =  0.64815  # m = 635 mm
+SENSOR1_Z_ABS = -0.03494  # m = -83.5 mm
 
-# New coordinate origin relative to Sensor 1: 30 mm left and 120 mm below.
-ORIGIN_OFFSET_X = -0.030  # m
-ORIGIN_OFFSET_Y = -0.120  # m
+# Same physical origin in the requested frame (+X left, +Y down):
+# 30 mm left and 120 mm below Sensor 1.
+ORIGIN_OFFSET_X = 0.030  # m
+ORIGIN_OFFSET_Y = 0.120  # m
 SENSOR1_OFFSET_X = -ORIGIN_OFFSET_X  # Sensor 1 relative to new origin
 SENSOR1_OFFSET_Y = -ORIGIN_OFFSET_Y
 
@@ -53,7 +54,7 @@ def generate_sensor_coordinates(
     """
     origin là tọa độ tuyệt đối của gốc mới trong hệ robot, đơn vị mét.
     sensor1_offset là tọa độ Sensor 1 so với gốc mới, đơn vị mét.
-    X tăng sang phải; Y giảm khi đi từ hàng trên xuống hàng dưới.
+    +X increases from right to left; +Y increases from top to bottom.
     Trả về tọa độ tuyệt đối theo thứ tự hàng, rồi cột.
     """
     x0, y0, z0 = origin
@@ -61,8 +62,8 @@ def generate_sensor_coordinates(
     coords = []
     for row in range(n_rows):    # row 0 = hàng 1 (trên cùng)
         for col in range(n_cols):# col 0 = cột 1 (trái nhất)
-            x = x0 + sensor1_x_offset + col * dx
-            y = y0 + sensor1_y_offset - row * dy
+            x = x0 + sensor1_x_offset - col * dx
+            y = y0 + sensor1_y_offset + row * dy
             z = z0
             coords.append([x, y, z])
     return np.array(coords)
@@ -109,6 +110,9 @@ def visualize_sensor_array(coords, dx=0.030, dy=0.030, annotate=True, circle_siz
     ax.set_ylabel("Y (m) - Vertical")
 
     ax.set_aspect('equal', adjustable='box')
+    # Display the requested positive directions: +X leftward and +Y downward.
+    ax.invert_xaxis()
+    ax.invert_yaxis()
 
     # vẽ lưới
     for xt in xticks:

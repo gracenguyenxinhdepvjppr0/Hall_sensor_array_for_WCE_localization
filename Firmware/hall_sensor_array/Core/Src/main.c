@@ -21,6 +21,8 @@ typedef struct { err_t err; uint32_t tx, rx; } fail_info_t;
 #define N_PER_BUS    8                  /* mỗi decoder 3->8 chọn 8 cảm biến */
 #define N_SENSOR     (N_BUS * N_PER_BUS)
 #define TX_BUF_SIZE  512                /* dòng dài nhất ~403 byte */
+#define UART_RX_LINE_SIZE 64
+#define CAPTURE_FRAME_COUNT 5
 /* ---- hiệu chuẩn (calib) ---- */
 #define CAL_AT_BOOT          1          /* 1 = tự calib sau khi khởi tạo (phải KHÔNG có nam châm gần mảng) */
 #define N_CAL                32         /* số lần quét lấy trung bình (~4.4 ms/lần -> ~140 ms) */
@@ -71,6 +73,11 @@ static uint8_t  tx_sel;                 /* buffer sẽ được định dạng �
 static volatile uint8_t tx_busy;        /* 1 = DMA đang gửi */
 static uint32_t tx_timeouts, tx_drops, tx_polled;  /* tx_timeouts tăng => ngắt UART7 chưa bật (xem ghi chú) */
 volatile uint32_t prof_scan_us, prof_send_us, prof_cycle_us;
+static uint8_t uart7_rx_byte;
+static char uart7_rx_line[UART_RX_LINE_SIZE];
+static volatile uint8_t uart7_rx_len;
+static volatile uint8_t uart7_rx_line_ready;
+static volatile uint8_t uart7_rx_overflow;
 
 static uint16_t temp_code[N_SENSOR];
 float Temp[4][4];                       /* nhiệt độ cảm biến (°C), cùng bố cục với Bx */
@@ -199,6 +206,70 @@ static void delay_us(uint16_t us)                                  /* us <= 6000
 static void uart_puts(const char *s)
 {
     HAL_UART_Transmit(&huart7, (uint8_t *)s, (uint16_t)strlen(s), 100);
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance != UART7) return;
+
+    if (!uart7_rx_line_ready) {
+        uint8_t ch = uart7_rx_byte;
+        if (ch == '\r') {
+            /* Ignore CR; accept either LF or CRLF from Python. */
+        } else if (ch == '\n') {
+            if (!uart7_rx_overflow) uart7_rx_line[uart7_rx_len] = '\0';
+            uart7_rx_line_ready = 1;
+        } else if (!uart7_rx_overflow) {
+            if (uart7_rx_len < UART_RX_LINE_SIZE - 1u) {
+                uart7_rx_line[uart7_rx_len++] = (char)ch;
+            } else {
+                uart7_rx_overflow = 1;
+            }
+        }
+    }
+
+    if (HAL_UART_Receive_IT(&huart7, &uart7_rx_byte, 1) != HAL_OK) {
+        uart7_rx_overflow = 1;
+    }
+}
+
+static bool take_uart_command(char *dst, size_t dst_size, bool *overflow)
+{
+    uint32_t primask = __get_PRIMASK();
+    __disable_irq();
+    if (!uart7_rx_line_ready) {
+        __set_PRIMASK(primask);
+        return false;
+    }
+
+    *overflow = (uart7_rx_overflow != 0u);
+    if (!*overflow && dst_size > 0u) {
+        strncpy(dst, uart7_rx_line, dst_size - 1u);
+        dst[dst_size - 1u] = '\0';
+    }
+    uart7_rx_len = 0;
+    uart7_rx_line_ready = 0;
+    uart7_rx_overflow = 0;
+    __set_PRIMASK(primask);
+    return true;
+}
+
+static bool parse_capture_command(const char *line, uint32_t *sample_id,
+                                  uint8_t *frame_count)
+{
+    unsigned long parsed_id;
+    unsigned int parsed_count;
+    char extra;
+    if (sscanf(line, "CAPTURE,%lu,%u%c", &parsed_id, &parsed_count, &extra) != 2) {
+        return false;
+    }
+    if (parsed_id > 0xFFFFFFFFUL || parsed_count != CAPTURE_FRAME_COUNT) {
+        return false;
+    }
+
+    *sample_id = (uint32_t)parsed_id;
+    *frame_count = (uint8_t)parsed_count;
+    return true;
 }
 
 /* ---------- Quét theo vòng ----------
@@ -341,22 +412,37 @@ static void uart_wait_idle(void)
     }
 }
 
-/* 1 dòng / lần quét:  B,<số khung>,<err_mask hex>,Bx[0][0..3],Bx[1][..],...,By...,Bz...   (đơn vị uT) */
-static void Send_UART(void)
+static void send_uart_status(const char *status, uint32_t sample_id,
+                             uint8_t frame_count)
+{
+    char msg[48];
+    int n;
+    uart_wait_idle();
+    n = snprintf(msg, sizeof msg, "%s,%lu,%u\r\n", status,
+                 (unsigned long)sample_id, (unsigned int)frame_count);
+    if (n > 0 && n < (int)sizeof msg) {
+        HAL_UART_Transmit(&huart7, (uint8_t *)msg, (uint16_t)n, 100);
+    }
+}
+
+/* Mỗi lần quét gửi ba dòng có sample_id và số thứ tự frame (đơn vị uT). */
+static void Send_UART(uint32_t sample_id, uint8_t frame_index)
 {
     char *buf = tx_buf[tx_sel];
     int n = 0;
     int w;
 
     // -------- Bx --------
-    n = snprintf(buf, TX_BUF_SIZE, "Bx");
+    n = snprintf(buf, TX_BUF_SIZE, "Bx,%lu,%u",
+                 (unsigned long)sample_id, (unsigned int)frame_index);
     n = append_array(buf, n, Bx);
 
     w = snprintf(buf + n, TX_BUF_SIZE - n, "\r\n");
     n += w;
 
     // -------- By --------
-    w = snprintf(buf + n, TX_BUF_SIZE - n, "By");
+    w = snprintf(buf + n, TX_BUF_SIZE - n, "By,%lu,%u",
+                 (unsigned long)sample_id, (unsigned int)frame_index);
     n += w;
 
     n = append_array(buf, n, By);
@@ -365,7 +451,8 @@ static void Send_UART(void)
     n += w;
 
     // -------- Bz --------
-    w = snprintf(buf + n, TX_BUF_SIZE - n, "Bz");
+    w = snprintf(buf + n, TX_BUF_SIZE - n, "Bz,%lu,%u",
+                 (unsigned long)sample_id, (unsigned int)frame_index);
     n += w;
 
     n = append_array(buf, n, Bz);
@@ -437,6 +524,9 @@ int main(void)
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
   HAL_NVIC_SetPriority(UART7_IRQn, 1, 0);             /* đảm bảo ngắt UART7 được bật (báo xong TX DMA) */
   HAL_NVIC_EnableIRQ(UART7_IRQn);
+  if (HAL_UART_Receive_IT(&huart7, &uart7_rx_byte, 1) != HAL_OK) {
+      Error_Handler();
+  }
   TMAG5170_InitAll();
   /* USER CODE END 2 */
 
@@ -444,17 +534,41 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while(1)
   {
+      char command[UART_RX_LINE_SIZE];
+      bool line_overflow = false;
+      uint32_t sample_id;
+      uint8_t frame_count;
+
+      if (!take_uart_command(command, sizeof command, &line_overflow)) {
+          HAL_Delay(1);
+          continue;
+      }
+      if (line_overflow) {
+          uart_puts("ERR,COMMAND_TOO_LONG\r\n");
+          continue;
+      }
+      if (!parse_capture_command(command, &sample_id, &frame_count)) {
+          uart_puts("ERR,EXPECTED_CAPTURE_ID_5\r\n");
+          continue;
+      }
+
+      send_uart_status("ACK", sample_id, frame_count);
+
       static uint32_t c_prev;
-      uint32_t k  = SystemCoreClock / 1000000u;       /* chu kỳ / us */
-      uint32_t c0 = DWT->CYCCNT;
-      Scan16();
-      uint32_t c1 = DWT->CYCCNT;
-      Send_UART();
-      uint32_t c2 = DWT->CYCCNT;
-      prof_scan_us  = (c1 - c0) / k;                  /* chỉ Scan16() */
-      prof_send_us  = (c2 - c1) / k;                  /* định dạng + chờ khung trước + bật DMA */
-      prof_cycle_us = (c0 - c_prev) / k;              /* từ đầu vòng trước tới đầu vòng này */
-      c_prev = c0;
+      uint32_t k = SystemCoreClock / 1000000u;         /* chu kỳ / us */
+      for (uint8_t frame_index = 1; frame_index <= frame_count; frame_index++) {
+          uint32_t c0 = DWT->CYCCNT;
+          Scan16();
+          uint32_t c1 = DWT->CYCCNT;
+          Send_UART(sample_id, frame_index);
+          uint32_t c2 = DWT->CYCCNT;
+          prof_scan_us  = (c1 - c0) / k;
+          prof_send_us  = (c2 - c1) / k;
+          prof_cycle_us = (c0 - c_prev) / k;
+          c_prev = c0;
+      }
+
+      send_uart_status("DONE", sample_id, frame_count);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
