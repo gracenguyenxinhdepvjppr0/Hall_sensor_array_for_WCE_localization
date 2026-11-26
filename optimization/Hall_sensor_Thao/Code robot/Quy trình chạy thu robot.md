@@ -15,6 +15,7 @@
 
 Firmware này **không phát dữ liệu liên tục khi rảnh**. Chỉ thấy dữ liệu sau khi gửi lệnh `CAPTURE`; trạng thái im lặng trên UART lúc khởi động là bình thường.
 
+Độ dày sách kê ~ 4cm, độ cao của cảm biến trên mạch ~ 1,5cm. Tổng độ cao so với mặt bàn là ~6cm .
 ### Robot ABB
 
 1. Bật controller, kiểm tra không có lỗi đang chặn chuyển động và bật robot theo quy trình an toàn tại cell.
