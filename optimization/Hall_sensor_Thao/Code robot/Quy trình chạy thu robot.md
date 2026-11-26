@@ -27,13 +27,13 @@ Firmware này **không phát dữ liệu liên tục khi rảnh**. Chỉ thấy 
 
 Phần robot trong `DataCollection_Summary.md` mô tả đúng nguyên tắc: PC gửi pose, chờ robot báo đã tới, rồi mới thu cảm biến. Các thông số dưới đây được đối chiếu với các script hiện tại:
 
-1. **Kiểm tra hệ tọa độ và giới hạn quỹ đạo.** Tọa độ X/Y/Z trong script là millimeter. Mỗi quỹ đạo hiển thị pose đầu và các biên dạng độ lệch trên console; đối chiếu chúng với frame mà chương trình ABB nhận trước khi chạy.
+1. **Kiểm tra hệ tọa độ và giới hạn quỹ đạo.** Tọa độ X/Y/Z trong script là millimeter. Mỗi quỹ đạo hiển thị pose đầu và các biên dạng độ lệch trên console; đối chiếu chúng với frame mà chương trình ABB nhận trước khi chạy. Với (x, y, z) là tọa độ trên FlexPendant ở Linear Mode: 
 
    | Quỹ đạo | Pose đầu tooltip (mm) | Giới hạn tương đối từ pose đầu (mm) |
    |---|---|---|
-   | Grid | `(-45, 685, -63.5)` | `dX: 0..140`, `dY: 0..140`, `dZ: 0..25` |
-   | Helical | `(95, 760, -63.5)` | `dX: -140..0`, `dY: -70..70`, `dZ: 0..30` |
-   | Lissajous | `(-60, 760, -63.5)` | `dX: 0..155`, `dY: -125..15`, `dZ: 0..30` |
+   | Grid | `(x - 30, y - 30, z + 20)` | `dX: 0..140`, `dY: 0..140`, `dZ: 0..25` |
+   | Helical | `(x - 45, y + 45, z + 20)` | `dX: -140..0`, `dY: -70..70`, `dZ: 0..30` |
+   | Lissajous | `(x - 45, y + 45, z + 20)` | `dX: 0..155`, `dY: -125..15`, `dZ: 0..30` |
    | Random | Chọn ngẫu nhiên đầu mỗi lượt | Tính từ workspace hiện có và in trên console |
 
    Để dời Helical, sửa tuple `HELIX_START_MM = (x, y, z)` trong `robot_ABB_helical.py` (tọa độ tooltip, mm). Giới hạn tương đối và hình dạng giữ nguyên; điểm đầu là tuple này và toàn bộ quỹ đạo tịnh tiến theo nó. Script in biên tooltip tuyệt đối ra console. Start hiện tại cho vùng X dự kiến `-45..95 mm`.
