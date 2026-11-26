@@ -39,14 +39,11 @@ TOOL_OFFSET_Z = 98.5
 # ==============================================================================
 # RANDOM SPACE LIMIT
 # ==============================================================================
-X_MIN = -45.0
-X_MAX = 95.0
-
-Y_MIN = 635.0
-Y_MAX = 775.0
-
-Z_MIN = -63.5 #cách 2 cm
-Z_MAX = -33.5 #cách 5 cm
+# Existing absolute workspace envelope (mm). Each run converts this envelope
+# into relative offsets from its first randomly selected tooltip pose.
+WORKSPACE_X_MIN, WORKSPACE_X_MAX = -45.0, 95.0
+WORKSPACE_Y_MIN, WORKSPACE_Y_MAX = 635.0, 775.0
+WORKSPACE_Z_MIN, WORKSPACE_Z_MAX = -63.5, -33.5
 
 TOTAL_RANDOM_POINTS = 150 #check again
 
@@ -135,16 +132,20 @@ def magnet_angles_from_vector(m):
 # RANDOM TRAJECTORY
 # ==============================================================================
 def generate_random_points():
+    start_x = np.random.uniform(WORKSPACE_X_MIN, WORKSPACE_X_MAX)
+    start_y = np.random.uniform(WORKSPACE_Y_MIN, WORKSPACE_Y_MAX)
+    start_z = np.random.uniform(WORKSPACE_Z_MIN, WORKSPACE_Z_MAX)
 
-    path=[]
+    dx_min, dx_max = WORKSPACE_X_MIN - start_x, WORKSPACE_X_MAX - start_x
+    dy_min, dy_max = WORKSPACE_Y_MIN - start_y, WORKSPACE_Y_MAX - start_y
+    dz_min, dz_max = WORKSPACE_Z_MIN - start_z, WORKSPACE_Z_MAX - start_z
 
-    for _ in range(TOTAL_RANDOM_POINTS):
-
-        x = np.random.uniform(X_MIN,X_MAX)
-        y = np.random.uniform(Y_MIN,Y_MAX)
-        z = np.random.uniform(Z_MIN,Z_MAX)
-
-        path.append((x,y,z))
+    path = [(start_x, start_y, start_z)]
+    for _ in range(TOTAL_RANDOM_POINTS - 1):
+        dx = np.random.uniform(dx_min, dx_max)
+        dy = np.random.uniform(dy_min, dy_max)
+        dz = np.random.uniform(dz_min, dz_max)
+        path.append((start_x + dx, start_y + dy, start_z + dz))
 
     return path
 
@@ -251,6 +252,15 @@ if __name__=="__main__":
         print("SCAN SUMMARY")
         print("Random points:", total_points)
         print("Total samples:", total_samples)
+        start_x, start_y, start_z = path[0]
+        dx_min, dx_max = WORKSPACE_X_MIN - start_x, WORKSPACE_X_MAX - start_x
+        dy_min, dy_max = WORKSPACE_Y_MIN - start_y, WORKSPACE_Y_MAX - start_y
+        dz_min, dz_max = WORKSPACE_Z_MIN - start_z, WORKSPACE_Z_MAX - start_z
+        print(f"Start tooltip: ({start_x:.3f}, {start_y:.3f}, {start_z:.3f}) mm")
+        print(
+            f"Relative limits for this run: dX=[{dx_min:.1f},{dx_max:.1f}], "
+            f"dY=[{dy_min:.1f},{dy_max:.1f}], dZ=[{dz_min:.1f},{dz_max:.1f}] mm"
+        )
         print("="*70)
 
         os.makedirs(os.path.dirname(COORD_FILE),exist_ok=True)
@@ -275,12 +285,21 @@ if __name__=="__main__":
             TOOL_OFFSET_X,TOOL_OFFSET_Y,TOOL_OFFSET_Z
         )
 
+        warmup_start = time.perf_counter()
         send_pose(client,tcp[0],tcp[1],tcp[2],quat)
+        warmup_reached = wait_robot(client)
+        warmup_wait_s = time.perf_counter() - warmup_start
+        if not warmup_reached:
+            print(
+                f"[TIMING] stage=warmup robot_wait={warmup_wait_s:.3f}s "
+                "status=ROBOT_TIMEOUT"
+            )
+            raise RuntimeError(
+                "Robot did not confirm the warm-up pose; stopping random trajectory"
+            )
 
-        if wait_robot(client):
-
-            print("Warmup reached")
-            time.sleep(WARMUP_DELAY)
+        print(f"Warmup reached (robot_wait={warmup_wait_s:.3f}s)")
+        time.sleep(WARMUP_DELAY)
 
         sample_id = 0
 
@@ -323,7 +342,9 @@ if __name__=="__main__":
                     f"[TIMING] sample_id={sample_id} robot_wait={robot_wait_s:.3f}s "
                     f"total={robot_wait_s:.3f}s status=ROBOT_TIMEOUT"
                 )
-                continue
+                raise RuntimeError(
+                    f"Robot timeout at sample {sample_id}; stopping random trajectory"
+                )
 
             settle_start = time.perf_counter()
             time.sleep(POINT_DELAY)

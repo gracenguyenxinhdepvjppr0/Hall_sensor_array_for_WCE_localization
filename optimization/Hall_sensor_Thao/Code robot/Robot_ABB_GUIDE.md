@@ -52,8 +52,7 @@ Note lại các khoảng của X,Y,Z -> vùng ROI
 Ở mục # RANDOM SPACE LIMIT, nhập Xmin, Xmax, Ymin, Ymax, Zmin, Zmax
 Giữ nút ở bảng ĐK rồi chạy code cho robot thu.
 2. Thu quỹ đạo Helix: robot_ABB_helical.py 150 điểm
-Ở mục HELIX CENTER, nhập điểm bắt đầu là tọa độ Sensor 13 (tâm mảng) để robot xuất phát từ điểm đó
-Lấy Xc, Yc là giá trị x,y của sensor 13 còn Zc = Zsensor13 + 3.5cm
+Trong `robot_ABB_helical.py`, nhập trực tiếp điểm đầu tooltip vào `HELIX_START_MM = (Xstart, Ystart, Zstart)`. Để tâm helix nằm tại Sensor 13, chọn `Xstart = Xsensor13 + R_BAR_BASE`, `Ystart = Ysensor13`, `Zstart = Zsensor13 + 3.5 cm`. Thay đổi tuple sẽ tịnh tiến toàn bộ đường đi, giữ nguyên hình dạng và độ lệch tương đối.
 Giữ nút ở bảng ĐK rồi chạy code cho robot thu.
 
 3. Thu quỹ đạo Grid (dạng Lưới): robot_ABB_grid.py

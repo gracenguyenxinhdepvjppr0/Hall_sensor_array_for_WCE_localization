@@ -37,16 +37,6 @@ TOOL_OFFSET_Y = 0.0
 TOOL_OFFSET_Z = 98.5
 
 # ==============================================================================
-# HELIX CENTER 
-# điểm bắt đầu tại tâm mảng cảm biến 
-# cách mảng sensor một khoảng nhất định để tránh va chạm
-# ==============================================================================
-XC = 25.0
-YC = 705.0
-ZC = -63.5 #cách 2 cm
-#(phải cách mảng cảm biến một khoảng nhất định để tránh va chạm)
-
-# ==============================================================================
 # HELIX PARAMETERS
 # ==============================================================================
 R_BAR_BASE   = 70
@@ -55,8 +45,33 @@ HELIX_HEIGHT = 30 # cách mặt sensor 2-5cm
 LOOPS        = 5
 N_POINTS     = 150
 
+# Change this tuple to translate the complete helix (tooltip X, Y, Z in mm).
+# The trajectory shape and all offsets relative to this first pose stay fixed.
+def validate_helix_start_pose(start_mm):
+    try:
+        pose = tuple(float(value) for value in start_mm)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "HELIX_START_MM must contain exactly three numeric values: (X, Y, Z)"
+        ) from exc
+
+    if len(pose) != 3 or not all(math.isfinite(value) for value in pose):
+        raise ValueError(
+            "HELIX_START_MM must contain exactly three finite values: (X, Y, Z)"
+        )
+    return pose
+
+
+HELIX_START_MM = (95.0, 760.0, -63.5)
+START_X, START_Y, START_Z = validate_helix_start_pose(HELIX_START_MM)
+
+# Path envelope relative to the first tooltip pose (mm).
+DX_MIN, DX_MAX = -2.0 * R_BAR_BASE, 0.0
+DY_MIN, DY_MAX = -R_BAR_BASE, R_BAR_BASE
+DZ_MIN, DZ_MAX = 0.0, HELIX_HEIGHT
+
 # Chạy tiếp quỹ đạo
-START_POINT = 159  # bắt đầu từ điểm thứ 159 của quỹ đạo
+# START_POINT = 159  # bắt đầu từ điểm thứ 159 của quỹ đạo
 
 # ==============================================================================
 # TIMING
@@ -154,9 +169,13 @@ def generate_helical_path():
 
         r=R_BAR_BASE+(R_TOP-R_BAR_BASE)*t
 
-        x=XC+r*math.cos(theta)
-        y=YC+r*math.sin(theta)
-        z=ZC+HELIX_HEIGHT*t
+        dx=r*math.cos(theta)-R_BAR_BASE
+        dy=r*math.sin(theta)
+        dz=HELIX_HEIGHT*t
+
+        x=START_X+dx
+        y=START_Y+dy
+        z=START_Z+dz
 
         path.append((x,y,z))
 
@@ -268,6 +287,17 @@ if __name__=="__main__":
         print("="*70)
         print("HELICAL SCAN SUMMARY")
         print("Points:",total_points)
+        print(f"Start tooltip: ({START_X:.3f}, {START_Y:.3f}, {START_Z:.3f}) mm")
+        print(
+            f"Relative limits: dX=[{DX_MIN:.1f},{DX_MAX:.1f}], "
+            f"dY=[{DY_MIN:.1f},{DY_MAX:.1f}], dZ=[{DZ_MIN:.1f},{DZ_MAX:.1f}] mm"
+        )
+        print(
+            f"Absolute tooltip envelope: "
+            f"X=[{START_X + DX_MIN:.3f},{START_X + DX_MAX:.3f}], "
+            f"Y=[{START_Y + DY_MIN:.3f},{START_Y + DY_MAX:.3f}], "
+            f"Z=[{START_Z + DZ_MIN:.3f},{START_Z + DZ_MAX:.3f}] mm"
+        )
         print("="*70)
 
         os.makedirs(os.path.dirname(COORD_FILE),exist_ok=True)

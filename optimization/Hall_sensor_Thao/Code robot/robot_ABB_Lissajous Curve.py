@@ -37,26 +37,38 @@ TOOL_OFFSET_Y = 0.0
 TOOL_OFFSET_Z = 98.5
 
 # ==============================================================================
-# LISSAJOUS WORKSPACE
-# nhập các tọa độ giới hạn của mảng cảm biến
+# LISSAJOUS LIMITS RELATIVE TO START TOOLTIP (mm)
 # ==============================================================================
 NUM_POINTS = 150
 
-X_MIN = -45.0
-X_MAX = 95.0
+DX_MIN, DX_MAX = 0.0, 155.0
 
-Y_MIN = 635.0
-Y_MAX = 775.0
+DY_MIN, DY_MAX = -125.0, 15.0
     
 # độ cao thực của nam châm 
 # điểm thu thập phải cách mảng cảm biến một khoảng nhất định để tránh va chạm
-Z_MIN = -63.5 # cách 2 cm
-Z_MAX = -33.5 # cách 5 cm
+DZ_MIN, DZ_MAX = 0.0, 30.0
 
-# start point (center of sensor array)
-XC = 35.0
-YC = 695.0
-ZC = -63.5 # cách 2 cm
+# Edit only this tuple to change the starting tooltip pose (X, Y, Z in mm).
+# The relative limits stay fixed, so the complete trajectory shifts with this pose.
+def validate_start_pose(start_mm):
+    try:
+        pose = tuple(float(value) for value in start_mm)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "LISSAJOUS_START_MM must contain exactly three numeric values: (X, Y, Z)"
+        ) from exc
+
+    if len(pose) != 3 or not all(math.isfinite(value) for value in pose):
+        raise ValueError(
+            "LISSAJOUS_START_MM must contain exactly three finite values: (X, Y, Z)"
+        )
+    return pose
+
+
+LISSAJOUS_START_MM = (-60.0, 760.0, -63.5)
+LISSAJOUS_START_MM = validate_start_pose(LISSAJOUS_START_MM)
+XC, YC, ZC = LISSAJOUS_START_MM
 # phải cách mảng cảm biến một khoảng nhất định để tránh va chạm 
 
 # Chạy tiếp quỹ đạo
@@ -152,15 +164,26 @@ def generate_lissajous_path():
     if NUM_POINTS < 2:
         raise ValueError("NUM_POINTS must be at least 2 for a closed trajectory")
 
+    for axis_name, lower, upper in (
+        ("X", DX_MIN, DX_MAX),
+        ("Y", DY_MIN, DY_MAX),
+        ("Z", DZ_MIN, DZ_MAX),
+    ):
+        if lower >= upper or not lower <= 0.0 <= upper:
+            raise ValueError(
+                f"Relative {axis_name} limits must be ordered and include zero "
+                "so the path starts at LISSAJOUS_START_MM"
+            )
+
     path=[]
 
-    Ax=(X_MAX-X_MIN)/2
-    Ay=(Y_MAX-Y_MIN)/2
-    Az=(Z_MAX-Z_MIN)/2
+    Ax=(DX_MAX-DX_MIN)/2
+    Ay=(DY_MAX-DY_MIN)/2
+    Az=(DZ_MAX-DZ_MIN)/2
 
-    Cx=(X_MAX+X_MIN)/2
-    Cy=(Y_MAX+Y_MIN)/2
-    Cz=(Z_MAX+Z_MIN)/2
+    Cx=(DX_MAX+DX_MIN)/2
+    Cy=(DY_MAX+DY_MIN)/2
+    Cz=(DZ_MAX+DZ_MIN)/2
 
     a=3
     b=4
@@ -175,18 +198,22 @@ def generate_lissajous_path():
         normalized = max(-1.0, min(1.0, normalized))
         return math.asin(normalized)
 
-    phase_x = phase_for_start(XC, X_MIN, X_MAX)
-    phase_y = phase_for_start(YC, Y_MIN, Y_MAX)
-    phase_z = phase_for_start(ZC, Z_MIN, Z_MAX)
+    phase_x = phase_for_start(0.0, DX_MIN, DX_MAX)
+    phase_y = phase_for_start(0.0, DY_MIN, DY_MAX)
+    phase_z = phase_for_start(0.0, DZ_MIN, DZ_MAX)
 
     for i in range(NUM_POINTS):
 
         # Include both t=0 and t=2*pi so the sampled path closes exactly.
         t=2*math.pi*i/(NUM_POINTS-1)
 
-        x=Cx+Ax*math.sin(a*t+phase_x)
-        y=Cy+Ay*math.sin(b*t+phase_y)
-        z=Cz+Az*math.sin(c*t+phase_z)
+        dx=Cx+Ax*math.sin(a*t+phase_x)
+        dy=Cy+Ay*math.sin(b*t+phase_y)
+        dz=Cz+Az*math.sin(c*t+phase_z)
+
+        x=XC+dx
+        y=YC+dy
+        z=ZC+dz
 
         path.append((x,y,z))
 
@@ -304,6 +331,17 @@ if __name__=="__main__":
         print("Trajectory : Lissajous")
         print("Started at point: 1")
         print("Total points:",total_points)
+        print(f"Start tooltip: ({XC:.3f}, {YC:.3f}, {ZC:.3f}) mm")
+        print(
+            f"Relative limits: dX=[{DX_MIN:.1f},{DX_MAX:.1f}], "
+            f"dY=[{DY_MIN:.1f},{DY_MAX:.1f}], dZ=[{DZ_MIN:.1f},{DZ_MAX:.1f}] mm"
+        )
+        print(
+            f"Absolute tooltip envelope: "
+            f"X=[{XC + DX_MIN:.3f},{XC + DX_MAX:.3f}], "
+            f"Y=[{YC + DY_MIN:.3f},{YC + DY_MAX:.3f}], "
+            f"Z=[{ZC + DZ_MIN:.3f},{ZC + DZ_MAX:.3f}] mm"
+        )
         print("="*70)
 
         os.makedirs(os.path.dirname(COORD_FILE),exist_ok=True)

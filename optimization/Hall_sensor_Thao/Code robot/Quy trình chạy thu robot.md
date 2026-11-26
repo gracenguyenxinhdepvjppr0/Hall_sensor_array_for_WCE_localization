@@ -27,7 +27,18 @@ Firmware này **không phát dữ liệu liên tục khi rảnh**. Chỉ thấy 
 
 Phần robot trong `DataCollection_Summary.md` mô tả đúng nguyên tắc: PC gửi pose, chờ robot báo đã tới, rồi mới thu cảm biến. Các thông số dưới đây được đối chiếu với các script hiện tại:
 
-1. **Kiểm tra hệ tọa độ và giới hạn quỹ đạo.** Tọa độ X/Y/Z trong script tính bằng millimeter. Các giá trị `XC`, `YC`, `ZC`, hoặc `X_MIN/X_MAX`, `Y_MIN/Y_MAX`, `Z_MIN/Z_MAX` phải dùng đúng hệ tọa độ mà chương trình phía ABB nhận. Kiểm tra lại các giá trị trong đúng script đang chạy; chúng khác nhau giữa Grid, Helical, Lissajous và Random. Không coi đồ thị quỹ đạo là kiểm tra va chạm.
+1. **Kiểm tra hệ tọa độ và giới hạn quỹ đạo.** Tọa độ X/Y/Z trong script là millimeter. Mỗi quỹ đạo hiển thị pose đầu và các biên dạng độ lệch trên console; đối chiếu chúng với frame mà chương trình ABB nhận trước khi chạy.
+
+   | Quỹ đạo | Pose đầu tooltip (mm) | Giới hạn tương đối từ pose đầu (mm) |
+   |---|---|---|
+   | Grid | `(-45, 685, -63.5)` | `dX: 0..140`, `dY: 0..140`, `dZ: 0..25` |
+   | Helical | `(95, 760, -63.5)` | `dX: -140..0`, `dY: -70..70`, `dZ: 0..30` |
+   | Lissajous | `(-60, 760, -63.5)` | `dX: 0..155`, `dY: -125..15`, `dZ: 0..30` |
+   | Random | Chọn ngẫu nhiên đầu mỗi lượt | Tính từ workspace hiện có và in trên console |
+
+   Để dời Helical, sửa tuple `HELIX_START_MM = (x, y, z)` trong `robot_ABB_helical.py` (tọa độ tooltip, mm). Giới hạn tương đối và hình dạng giữ nguyên; điểm đầu là tuple này và toàn bộ quỹ đạo tịnh tiến theo nó. Script in biên tooltip tuyệt đối ra console. Start hiện tại cho vùng X dự kiến `-45..95 mm`.
+
+   Để dời Lissajous, chỉ sửa tuple `LISSAJOUS_START_MM = (x, y, z)` trong `robot_ABB_Lissajous Curve.py` (tọa độ tooltip, mm); `XC`, `YC`, `ZC` được lấy tự động từ tuple. Giới hạn tương đối và hình dạng quỹ đạo giữ nguyên, toàn bộ đường đi được tịnh tiến theo start mới; điểm đầu và cuối trùng nhau. Script kiểm tra start có ba tọa độ hữu hạn, kiểm tra các biên tương đối chứa offset 0 và in biên tooltip tuyệt đối ra console. Với start hiện tại, X chạy từ -60 đến 95 mm. Biên in ra không kiểm tra giới hạn khớp hoặc va chạm; xác nhận vùng làm việc trước khi chạy robot.
 2. **Xác nhận tool offset.** Các script hiện dùng offset trong hệ tool `o = [-3.0, 0.0, 98.5] mm`. Quỹ đạo định nghĩa vị trí tooltip/nam châm `p_tip`, còn robot nhận TCP. Python tính:
 
    ```text
@@ -72,7 +83,7 @@ Trước khi chạy, mở script tương ứng và kiểm tra `UART_PORT`, `UART
 | Lissajous | `Lissajous_points_coordinates.csv` trong thư mục `Code robot` | `Lissajous_data.csv` trong thư mục `Code robot` |
 | Random | `Random_points_coordinates.csv` trong thư mục `Code robot` | `Random_data.csv` trong thư mục `Code robot` |
 
-Các script mở file ở chế độ ghi mới nên lần chạy tiếp theo có thể **ghi đè dữ liệu cũ**. Hãy đổi tên hai file đầu ra hoặc sao lưu dữ liệu cũ trước khi chạy. Không dùng `START_POINT` để tiếp tục phiên cũ nếu chưa tự xử lý việc nối file và `sample_id`; cách tiếp tục hiện chưa nhất quán giữa các script. Riêng Helical đang đặt `START_POINT=159`, nhưng phần cắt quỹ đạo theo điểm bắt đầu đang bị comment nên script vẫn bắt đầu từ đầu.
+Các script mở file ở chế độ ghi mới nên lần chạy tiếp theo có thể **ghi đè dữ liệu cũ**. Hãy đổi tên hai file đầu ra hoặc sao lưu dữ liệu cũ trước khi chạy. Không dùng `START_POINT` để tiếp tục phiên cũ nếu chưa tự xử lý việc nối file và `sample_id`; cách tiếp tục hiện chưa nhất quán giữa các script. Trong Helical và Lissajous, các dòng `START_POINT` hiện đang bị comment và không cắt quỹ đạo; hai script này bắt đầu từ pose đầu.
 
 ## 2. Kiểm tra log UART trước khi chạy robot
 
@@ -116,7 +127,14 @@ python ".\robot_ABB_Lissajous Curve.py"
 python .\robot_ABB_random.py
 ```
 
-Trình tự chạy của script:
+Tọa độ điểm đầu của các quỹ đạo: Với (x, y, z) là tọa độ sau khi calib quat
+1. Grid: (x - 30, y - 30, z + 20) mm
+2. Helical: (x - 45, y + 45, z + 20) mm 
+3. Lissajous: (x - 45, y + 45, z + 20) mm 
+
+Giới hạn vùng ROI: 
+1. Helical: 
+Trình tự chạy của script: 
 
 1. Kết nối TCP tới robot và mở UART.
 2. Di chuyển tới vị trí khởi động/warm-up.
@@ -160,7 +178,7 @@ Sau mỗi pose được lưu thành công, bốn script in một dòng đo thờ
 
 `robot_wait` gồm thời gian gửi lệnh và chờ robot báo tới; `settle` là thời gian chờ ổn định; `uart` gồm gửi lệnh CAPTURE, nhận đủ 5 lần quét và tính trung bình; `csv` gồm ghi và flush hai file. `total` đo từ trước lúc gửi pose tới sau khi flush CSV. Log thời gian hiện chỉ in trên console, không thêm cột vào CSV. Với timeout hoặc lỗi UART, sẽ in `status=ROBOT_TIMEOUT` hoặc `status=UART_ERROR` để biết pose đó chưa được lưu thành công.
 
-Nếu thấy `Robot timeout`, script hiện bỏ qua sample đó và tiếp tục quỹ đạo. Dừng và kiểm tra robot/server nếu robot chưa thật sự tới điểm; không nên tiếp tục thu khi vị trí không chắc chắn. Nếu thấy `[UART ERROR]`, script dừng lượt thu để tránh ghép nhầm tọa độ với dữ liệu cảm biến.
+Nếu thấy `Robot timeout`, Grid, Helical và Lissajous hiện bỏ qua sample; Random đã được chỉnh để dừng hẳn nếu timeout ở warm-up hoặc sample. Dừng và kiểm tra robot/server nếu robot chưa thật sự tới điểm; không nên tiếp tục thu khi vị trí không chắc chắn. Nếu thấy `[UART ERROR]`, script dừng lượt thu để tránh ghép nhầm tọa độ với dữ liệu cảm biến.
 
 ## 4. Kết thúc và kiểm tra dữ liệu
 

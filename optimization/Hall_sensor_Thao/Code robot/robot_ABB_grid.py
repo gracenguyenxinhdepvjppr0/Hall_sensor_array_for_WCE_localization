@@ -43,9 +43,9 @@ TOOL_OFFSET_Z = 98.5
 # chú ý cao hơn mảng sensor một khoảng nhất định để tránh va chạm
 # ============================================================================== 
 # check lại hết các thông số vị trí
-XC = 618.15 #sensor [0][0]
-YC = 29.99995
-ZC = -14.94 #cách 2 cm
+XC = -45 #sensor [0][0]
+YC = 685
+ZC = -63.5 #cách 2 cm
 
 # ==============================================================================
 # GRID CONFIG
@@ -54,8 +54,11 @@ GRID_X = 8
 GRID_Y = 8
 GRID_Z = 6
 
-STEP_XY = 20.0 #mm
-STEP_Z  = 5.0 #mm
+# Offset limits from the first tooltip pose (mm). These preserve 20 mm X/Y
+# spacing and 5 mm Z spacing for the current 8x8x6 grid.
+DX_MIN, DX_MAX = 0.0, 140.0
+DY_MIN, DY_MAX = 0.0, 140.0
+DZ_MIN, DZ_MAX = 0.0, 25.0
 
 # Chạy từ đầu
 START_POINT = 1
@@ -152,19 +155,22 @@ def generate_3d_grid():
     if GRID_X < 1 or GRID_Y < 1 or GRID_Z < 1:
         raise ValueError("GRID_X, GRID_Y, and GRID_Z must all be positive")
 
+    x_offsets = np.linspace(DX_MIN, DX_MAX, GRID_X)
+    y_offsets = np.linspace(DY_MIN, DY_MAX, GRID_Y)
+    z_offsets = np.linspace(DZ_MIN, DZ_MAX, GRID_Z)
     path = []
 
     for iz in range(GRID_Z):
-        z = ZC + iz * STEP_Z
+        z = ZC + z_offsets[iz]
         x_indices = range(GRID_X) if iz % 2 == 0 else range(GRID_X - 1, -1, -1)
 
         for x_sequence, ix in enumerate(x_indices):
-            x = XC + ix * STEP_XY
+            x = XC + x_offsets[ix]
             y_forward = (x_sequence + iz) % 2 == 0
             y_indices = range(GRID_Y) if y_forward else range(GRID_Y - 1, -1, -1)
 
             for iy in y_indices:
-                y = YC + iy * STEP_XY
+                y = YC + y_offsets[iy]
                 # Do not filter edges: include all interior and boundary points.
                 path.append((x, y, z))
 
@@ -361,6 +367,11 @@ if __name__=="__main__":
         print("Grid points:", total_points)
         print("Orientations per point:", total_orient)
         print("Total samples:", total_samples)
+        print(f"Start tooltip: ({XC:.3f}, {YC:.3f}, {ZC:.3f}) mm")
+        print(
+            f"Relative limits: dX=[{DX_MIN:.1f},{DX_MAX:.1f}], "
+            f"dY=[{DY_MIN:.1f},{DY_MAX:.1f}], dZ=[{DZ_MIN:.1f},{DZ_MAX:.1f}] mm"
+        )
         print("="*70)
 
         print("Total points:",len(path))
