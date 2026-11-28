@@ -1,0 +1,195 @@
+<div id="helix-trajectory-visual">
+  <div class="helix-heading">
+    <h1>Quỹ đạo Helical</h1>
+    <p class="text-muted">150 điểm · 5 vòng · Z tăng 30 mm từ điểm bắt đầu</p>
+  </div>
+  <svg class="helix-chart" viewBox="0 0 760 440" role="img" aria-labelledby="helix-chart-title helix-chart-description">
+    <title id="helix-chart-title">Quỹ đạo Helical trong robot_ABB_helical.py</title>
+    <desc id="helix-chart-description">Quỹ đạo xoắn ốc 150 điểm, bán kính giảm từ 70 xuống 35 milimét, bắt đầu tại Z âm 63 phẩy 5 milimét và tăng cao 30 milimét, quanh trục XY tại X âm 120, Y 760. Điểm đầu và cuối được đánh dấu.</desc>
+    <g id="helix-axes"></g>
+    <g id="helix-path-layer"></g>
+    <g id="helix-labels"></g>
+  </svg>
+  <p class="text-muted">Tâm trục XY: (−120, 760) mm · Z bắt đầu: −63.5 mm · Điểm đầu: (+70, 0, 0) mm · Điểm cuối: (+35, 0, +30) mm</p>
+</div>
+<style>
+  #helix-trajectory-visual {
+    display: grid;
+    gap: calc(var(--font-size-base) * 0.5);
+    color: var(--foreground);
+  }
+  #helix-trajectory-visual .helix-heading {
+    display: grid;
+    gap: calc(var(--font-size-base) * 0.25);
+  }
+  #helix-trajectory-visual .helix-chart {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  #helix-trajectory-visual .helix-axis,
+  #helix-trajectory-visual .helix-grid {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 1.25;
+  }
+  #helix-trajectory-visual .helix-grid {
+    opacity: 0.65;
+  }
+  #helix-trajectory-visual .helix-centerline {
+    fill: none;
+    stroke: var(--muted-foreground);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 5;
+  }
+  #helix-trajectory-visual .helix-path {
+    fill: none;
+    stroke: var(--viz-series-1);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  #helix-trajectory-visual .helix-start {
+    fill: var(--green);
+  }
+  #helix-trajectory-visual .helix-end {
+    fill: var(--red);
+  }
+  #helix-trajectory-visual .helix-center {
+    fill: var(--background);
+    stroke: var(--muted-foreground);
+    stroke-width: 1.5;
+  }
+  #helix-trajectory-visual .helix-label {
+    fill: var(--foreground);
+  }
+  #helix-trajectory-visual .helix-axis-label {
+    fill: var(--muted-foreground);
+  }
+</style>
+<script>
+  (() => {
+    const svgNS = "http://www.w3.org/2000/svg";
+    const axes = document.getElementById("helix-axes");
+    const pathLayer = document.getElementById("helix-path-layer");
+    const labels = document.getElementById("helix-labels");
+    if (!axes || !pathLayer || !labels) return;
+
+    const centerX = 380;
+    const centerY = 250;
+    const scale = 2.5;
+    const yaw = -Math.PI / 4;
+    const pitch = Math.PI / 6;
+    const cosYaw = Math.cos(yaw);
+    const sinYaw = Math.sin(yaw);
+    const cosPitch = Math.cos(pitch);
+    const sinPitch = Math.sin(pitch);
+
+    const project = ({ x, y, z }) => {
+      const horizontal = cosYaw * x - sinYaw * y;
+      const depth = sinYaw * x + cosYaw * y;
+      const vertical = cosPitch * z - sinPitch * depth;
+      return [centerX + horizontal * scale, centerY - vertical * scale];
+    };
+
+    const addLine = (layer, from, to, className, extra = {}) => {
+      const [x1, y1] = project(from);
+      const [x2, y2] = project(to);
+      const element = document.createElementNS(svgNS, "line");
+      element.setAttribute("x1", x1.toFixed(2));
+      element.setAttribute("y1", y1.toFixed(2));
+      element.setAttribute("x2", x2.toFixed(2));
+      element.setAttribute("y2", y2.toFixed(2));
+      element.setAttribute("class", className);
+      for (const [key, value] of Object.entries(extra)) element.setAttribute(key, value);
+      layer.appendChild(element);
+    };
+
+    const addText = (layer, point, text, className, dx = 0, dy = 0) => {
+      const [x, y] = project(point);
+      const element = document.createElementNS(svgNS, "text");
+      element.setAttribute("x", (x + dx).toFixed(2));
+      element.setAttribute("y", (y + dy).toFixed(2));
+      element.setAttribute("class", className);
+      element.textContent = text;
+      layer.appendChild(element);
+    };
+
+    const addMarker = (point, className, label, radius = 4.5) => {
+      const [cx, cy] = project(point);
+      const element = document.createElementNS(svgNS, "circle");
+      element.setAttribute("cx", cx.toFixed(2));
+      element.setAttribute("cy", cy.toFixed(2));
+      element.setAttribute("r", radius);
+      element.setAttribute("class", className);
+      element.setAttribute("data-tooltip", label);
+      element.setAttribute("aria-label", label);
+      pathLayer.appendChild(element);
+    };
+
+    const origin = { x: 0, y: 0, z: 0 };
+    const xLow = { x: -80, y: 0, z: 0 };
+    const xHigh = { x: 80, y: 0, z: 0 };
+    const yLow = { x: 0, y: -80, z: 0 };
+    const yHigh = { x: 0, y: 80, z: 0 };
+    const zLow = { x: 0, y: 0, z: 0 };
+    const zHigh = { x: 0, y: 0, z: 35 };
+
+    const planeCorners = [
+      { x: -80, y: -80, z: 0 },
+      { x: 80, y: -80, z: 0 },
+      { x: 80, y: 80, z: 0 },
+      { x: -80, y: 80, z: 0 },
+      { x: -80, y: -80, z: 0 },
+    ];
+    const plane = document.createElementNS(svgNS, "path");
+    plane.setAttribute("d", planeCorners.map((point, index) => {
+      const [x, y] = project(point);
+      return `${index ? "L" : "M"}${x.toFixed(2)},${y.toFixed(2)}`;
+    }).join(" "));
+    plane.setAttribute("class", "helix-grid");
+    axes.appendChild(plane);
+
+    addLine(axes, xLow, xHigh, "helix-axis");
+    addLine(axes, yLow, yHigh, "helix-axis");
+    addLine(axes, zLow, zHigh, "helix-centerline");
+    addText(labels, xHigh, "X (mm)", "helix-axis-label text-small", 8, 4);
+    addText(labels, yHigh, "Y (mm)", "helix-axis-label text-small", -8, 4);
+    addText(labels, zHigh, "Z (mm)", "helix-axis-label text-small", 8, -4);
+    addText(labels, { x: 0, y: 0, z: 33 }, "Trục tâm", "helix-axis-label text-small", 10, -4);
+
+    const pointCount = 150;
+    const loopCount = 5;
+    const baseRadius = 70;
+    const topRadius = 35;
+    const height = 30;
+    const points = [];
+
+    for (let i = 0; i < pointCount; i += 1) {
+      const t = i / (pointCount - 1);
+      const theta = 2 * Math.PI * loopCount * t;
+      const radius = baseRadius + (topRadius - baseRadius) * t;
+      points.push({
+        x: radius * Math.cos(theta),
+        y: radius * Math.sin(theta),
+        z: height * t,
+      });
+    }
+
+    const path = document.createElementNS(svgNS, "path");
+    path.setAttribute("d", points.map((point, index) => {
+      const [x, y] = project(point);
+      return `${index ? "L" : "M"}${x.toFixed(2)},${y.toFixed(2)}`;
+    }).join(" "));
+    path.setAttribute("class", "helix-path");
+    pathLayer.appendChild(path);
+
+    const start = points[0];
+    const end = points[points.length - 1];
+    addMarker(start, "helix-start", "Bắt đầu: X +70 mm, Y 0 mm, Z 0 mm");
+    addMarker(end, "helix-end", "Kết thúc: X +35 mm, Y 0 mm, Z +30 mm");
+    addMarker(origin, "helix-center", "Tâm trục XY / cao độ Z bắt đầu", 3.5);
+    addText(labels, start, "Bắt đầu", "helix-label text-small", 8, 15);
+    addText(labels, end, "Kết thúc", "helix-label text-small", 8, -8);
+  })();
+</script>

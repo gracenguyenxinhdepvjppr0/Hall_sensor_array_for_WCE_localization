@@ -29,7 +29,7 @@ Phần robot trong `DataCollection_Summary.md` mô tả đúng nguyên tắc: PC
 
    | Quỹ đạo | Pose đầu tooltip (mm) | Giới hạn tương đối từ pose đầu (mm) |
    |---|---|---|
-   | Grid | `(x - 30, y - 30, z + 20)` | `dX: 0..140`, `dY: 0..140`, `dZ: 0..25` |
+   | Grid | `(x + 25, y - 25, z + 20)` | `dX: 0..140`, `dY: 0..140`, `dZ: 0..25` |
    | Helical | `(x - 45, y + 45, z + 20)` | `dX: -140..0`, `dY: -70..70`, `dZ: 0..30` |
    | Lissajous | `(x - 45, y + 45, z + 20)` | `dX: 0..155`, `dY: -125..15`, `dZ: 0..30` |
    | Random | Chọn ngẫu nhiên đầu mỗi lượt | Tính từ workspace hiện có và in trên console |

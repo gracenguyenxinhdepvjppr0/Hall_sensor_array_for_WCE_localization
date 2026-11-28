@@ -1,0 +1,4 @@
+trajectory,reference_sensor_id,sensor1_x_mm,sensor1_y_mm,sensor1_z_mm,offset_x_mm,offset_y_mm,offset_z_mm,start_tooltip_x_mm,start_tooltip_y_mm,start_tooltip_z_mm
+Grid,1,-0.05,648.15,-34.94,25.0,-25.0,20.0,24.95,623.15,-14.94
+Helical,1,-0.05,648.15,-34.94,-45.0,45.0,20.0,-45.05,693.15,-14.94
+Lissajous,1,-0.05,648.15,-34.94,-45.0,45.0,20.0,-45.05,693.15,-14.94

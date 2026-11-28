@@ -41,8 +41,8 @@ TOOL_OFFSET_Z = 98.5
 # ==============================================================================
 # Existing absolute workspace envelope (mm). Each run converts this envelope
 # into relative offsets from its first randomly selected tooltip pose.
-WORKSPACE_X_MIN, WORKSPACE_X_MAX = -45.0, 95.0
-WORKSPACE_Y_MIN, WORKSPACE_Y_MAX = 635.0, 775.0
+WORKSPACE_X_MIN, WORKSPACE_X_MAX = -195.0, -45.0
+WORKSPACE_Y_MIN, WORKSPACE_Y_MAX = 685.0, 835.0
 WORKSPACE_Z_MIN, WORKSPACE_Z_MAX = -63.5, -33.5
 
 TOTAL_RANDOM_POINTS = 150 #check again

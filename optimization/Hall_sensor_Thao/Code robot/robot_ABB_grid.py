@@ -43,8 +43,8 @@ TOOL_OFFSET_Z = 98.5
 # chú ý cao hơn mảng sensor một khoảng nhất định để tránh va chạm
 # ============================================================================== 
 # check lại hết các thông số vị trí
-XC = -45 #sensor [0][0]
-YC = 685
+XC = -50 #sensor [0][0]
+YC = 690
 ZC = -63.5 #cách 2 cm
 
 # ==============================================================================
@@ -54,8 +54,9 @@ GRID_X = 8
 GRID_Y = 8
 GRID_Z = 6
 
-# Offset limits from the first tooltip pose (mm). These preserve 20 mm X/Y
-# spacing and 5 mm Z spacing for the current 8x8x6 grid.
+# Offset spans from the first tooltip pose (mm). X is subtracted so increasing
+# grid indices move toward decreasing world X. With the current 8x8x6 grid,
+# spacing is about 21.43 mm in X/Y and 5 mm in Z.
 DX_MIN, DX_MAX = 0.0, 140.0
 DY_MIN, DY_MAX = 0.0, 140.0
 DZ_MIN, DZ_MAX = 0.0, 25.0
@@ -165,7 +166,7 @@ def generate_3d_grid():
         x_indices = range(GRID_X) if iz % 2 == 0 else range(GRID_X - 1, -1, -1)
 
         for x_sequence, ix in enumerate(x_indices):
-            x = XC + x_offsets[ix]
+            x = XC - x_offsets[ix]
             y_forward = (x_sequence + iz) % 2 == 0
             y_indices = range(GRID_Y) if y_forward else range(GRID_Y - 1, -1, -1)
 

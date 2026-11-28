@@ -41,32 +41,31 @@ TOOL_OFFSET_Z = 98.5
 # ==============================================================================
 R_BAR_BASE   = 70
 R_TOP        = 35
-HELIX_HEIGHT = 30 # cách mặt sensor 2-5cm 
+HELIX_HEIGHT = 30.0 # độ cao tăng từ Z bắt đầu
 LOOPS        = 5
 N_POINTS     = 150
 
-# Change this tuple to translate the complete helix (tooltip X, Y, Z in mm).
-# The trajectory shape and all offsets relative to this first pose stay fixed.
-def validate_helix_start_pose(start_mm):
+# Nhập tâm trục X/Y và cao độ bắt đầu Z tại đây (mm).
+def validate_helix_center(center_mm):
     try:
-        pose = tuple(float(value) for value in start_mm)
+        center = tuple(float(value) for value in center_mm)
     except (TypeError, ValueError) as exc:
         raise ValueError(
-            "HELIX_START_MM must contain exactly three numeric values: (X, Y, Z)"
+            "HELIX_CENTER_MM must contain exactly three numeric values: (X, Y, Z)"
         ) from exc
 
-    if len(pose) != 3 or not all(math.isfinite(value) for value in pose):
+    if len(center) != 3 or not all(math.isfinite(value) for value in center):
         raise ValueError(
-            "HELIX_START_MM must contain exactly three finite values: (X, Y, Z)"
+            "HELIX_CENTER_MM must contain exactly three finite values: (X, Y, Z)"
         )
-    return pose
+    return center
 
 
-HELIX_START_MM = (95.0, 760.0, -63.5)
-START_X, START_Y, START_Z = validate_helix_start_pose(HELIX_START_MM)
+HELIX_CENTER_MM = (-120, 760.0, -63.5)
+CENTER_X, CENTER_Y, CENTER_Z = validate_helix_center(HELIX_CENTER_MM)
 
-# Path envelope relative to the first tooltip pose (mm).
-DX_MIN, DX_MAX = -2.0 * R_BAR_BASE, 0.0
+# Path envelope relative to the configured center/start position (mm).
+DX_MIN, DX_MAX = -R_BAR_BASE, R_BAR_BASE
 DY_MIN, DY_MAX = -R_BAR_BASE, R_BAR_BASE
 DZ_MIN, DZ_MAX = 0.0, HELIX_HEIGHT
 
@@ -157,7 +156,10 @@ def magnet_angles_from_vector(m):
 # ==============================================================================
 # HELICAL TRAJECTORY
 # ==============================================================================
-def generate_helical_path():
+def generate_helical_path(center_mm=HELIX_CENTER_MM):
+    """Return a helix around the supplied XY center, starting at its Z value."""
+
+    center_x, center_y, center_z = validate_helix_center(center_mm)
 
     path=[]
 
@@ -169,13 +171,13 @@ def generate_helical_path():
 
         r=R_BAR_BASE+(R_TOP-R_BAR_BASE)*t
 
-        dx=r*math.cos(theta)-R_BAR_BASE
+        dx=r*math.cos(theta)
         dy=r*math.sin(theta)
         dz=HELIX_HEIGHT*t
 
-        x=START_X+dx
-        y=START_Y+dy
-        z=START_Z+dz
+        x=center_x+dx
+        y=center_y+dy
+        z=center_z+dz
 
         path.append((x,y,z))
 
@@ -287,16 +289,19 @@ if __name__=="__main__":
         print("="*70)
         print("HELICAL SCAN SUMMARY")
         print("Points:",total_points)
-        print(f"Start tooltip: ({START_X:.3f}, {START_Y:.3f}, {START_Z:.3f}) mm")
+        print(
+            f"Helix XY center / start Z: "
+            f"({CENTER_X:.3f}, {CENTER_Y:.3f}, {CENTER_Z:.3f}) mm"
+        )
         print(
             f"Relative limits: dX=[{DX_MIN:.1f},{DX_MAX:.1f}], "
             f"dY=[{DY_MIN:.1f},{DY_MAX:.1f}], dZ=[{DZ_MIN:.1f},{DZ_MAX:.1f}] mm"
         )
         print(
             f"Absolute tooltip envelope: "
-            f"X=[{START_X + DX_MIN:.3f},{START_X + DX_MAX:.3f}], "
-            f"Y=[{START_Y + DY_MIN:.3f},{START_Y + DY_MAX:.3f}], "
-            f"Z=[{START_Z + DZ_MIN:.3f},{START_Z + DZ_MAX:.3f}] mm"
+            f"X=[{CENTER_X + DX_MIN:.3f},{CENTER_X + DX_MAX:.3f}], "
+            f"Y=[{CENTER_Y + DY_MIN:.3f},{CENTER_Y + DY_MAX:.3f}], "
+            f"Z=[{CENTER_Z + DZ_MIN:.3f},{CENTER_Z + DZ_MAX:.3f}] mm"
         )
         print("="*70)
 

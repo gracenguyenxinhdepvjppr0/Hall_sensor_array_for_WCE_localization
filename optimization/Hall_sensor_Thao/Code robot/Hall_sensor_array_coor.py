@@ -13,9 +13,9 @@ import os
 # ==============================================================================
 # Absolute robot-frame coordinate of Sensor 1 (top-left), in meters. 
 # Lấy tọa độ thật nhập vào đây 
-SENSOR1_X_ABS = -0.00005  # m = -45 mm
-SENSOR1_Y_ABS =  0.64815  # m = 635 mm
-SENSOR1_Z_ABS = -0.03494  # m = -83.5 mm
+SENSOR1_X_ABS = -0.00005  # m = -0.05 mm
+SENSOR1_Y_ABS =  0.64815  # m = 648.15 mm
+SENSOR1_Z_ABS = -0.03494  # m = -34.94 mm
 
 # Same physical origin in the requested frame (+X left, +Y down):
 # 30 mm left and 120 mm below Sensor 1.
@@ -148,13 +148,51 @@ def save_to_csv_by_column(coords, filename="sensor_positions.csv", n_rows=4, n_c
         writer = csv.writer(f)
         writer.writerow(["x_mm", "y_mm", "z_mm"])
         for row in reordered_coords:
-            writer.writerow([value * 1000.0 for value in row])
+            writer.writerow([round(value * 1000.0, 3) for value in row])
     print(f"Saved: {os.path.abspath(filename)}")
     print("Coordinate frame: absolute robot frame; units: mm")
     
     # In thông tin về thứ tự
     print(f"Total sensors: {len(reordered_coords)}")
     print("Order: Column-major (first complete column, then next column)")
+
+
+def save_trajectory_start_poses_from_sensor1(coords, filename):
+    """Export absolute trajectory start poses using Sensor 1 as (x, y, z)."""
+    if len(coords) == 0:
+        raise ValueError("Sensor coordinate array is empty")
+
+    sensor1_mm = np.round(np.asarray(coords[0], dtype=float) * 1000.0, 3)
+    trajectory_offsets_mm = (
+        ("Grid", (25.0, -25.0, 20.0)),
+        ("Helical", (-45.0, 45.0, 20.0)),
+        ("Lissajous", (-45.0, 45.0, 20.0)),
+    )
+
+    with open(filename, mode="w", newline="") as output_file:
+        writer = csv.writer(output_file)
+        writer.writerow([
+            "trajectory",
+            "reference_sensor_id",
+            "sensor1_x_mm", "sensor1_y_mm", "sensor1_z_mm",
+            "offset_x_mm", "offset_y_mm", "offset_z_mm",
+            "start_tooltip_x_mm", "start_tooltip_y_mm", "start_tooltip_z_mm",
+        ])
+
+        for trajectory, (offset_x, offset_y, offset_z) in trajectory_offsets_mm:
+            start_x = round(sensor1_mm[0] + offset_x, 3)
+            start_y = round(sensor1_mm[1] + offset_y, 3)
+            start_z = round(sensor1_mm[2] + offset_z, 3)
+            writer.writerow([
+                trajectory,
+                1,
+                *sensor1_mm,
+                offset_x, offset_y, offset_z,
+                start_x, start_y, start_z,
+            ])
+
+    print(f"Saved trajectory start poses: {os.path.abspath(filename)}")
+    print("Reference: Sensor 1 (top-left); units: mm")
 
 
 # ===== Main execution =====
@@ -194,3 +232,9 @@ visualize_sensor_array(reordered_coords, dx=VISUALIZE_DX, dy=VISUALIZE_DY, annot
 # Save to CSV theo thứ tự cột
 csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Hall_sensor_positions_4x4_absolute_mm.csv")
 save_to_csv_by_column(coords, csv_path, N_ROWS, N_COLS)
+
+trajectory_pose_path = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "Trajectory_start_poses_from_sensor1_mm.csv",
+)
+save_trajectory_start_poses_from_sensor1(coords, trajectory_pose_path)

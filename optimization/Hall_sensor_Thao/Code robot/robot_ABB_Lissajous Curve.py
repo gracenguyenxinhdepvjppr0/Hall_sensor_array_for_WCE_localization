@@ -41,15 +41,15 @@ TOOL_OFFSET_Z = 98.5
 # ==============================================================================
 NUM_POINTS = 150
 
-DX_MIN, DX_MAX = 0.0, 155.0
+DX_MIN, DX_MAX = -75.0, 75.0
 
-DY_MIN, DY_MAX = -125.0, 15.0
+DY_MIN, DY_MAX = -70.0, 70.0
     
 # độ cao thực của nam châm 
 # điểm thu thập phải cách mảng cảm biến một khoảng nhất định để tránh va chạm
 DZ_MIN, DZ_MAX = 0.0, 30.0
 
-# Edit only this tuple to change the starting tooltip pose (X, Y, Z in mm).
+# Edit this tuple to set the center of the Lissajous path (X, Y, Z in mm).
 # The relative limits stay fixed, so the complete trajectory shifts with this pose.
 def validate_start_pose(start_mm):
     try:
@@ -66,7 +66,7 @@ def validate_start_pose(start_mm):
     return pose
 
 
-LISSAJOUS_START_MM = (-60.0, 760.0, -63.5)
+LISSAJOUS_START_MM = (-120.0, 760.0, -63.5)
 LISSAJOUS_START_MM = validate_start_pose(LISSAJOUS_START_MM)
 XC, YC, ZC = LISSAJOUS_START_MM
 # phải cách mảng cảm biến một khoảng nhất định để tránh va chạm 
@@ -160,6 +160,7 @@ def magnet_angles_from_vector(m):
 # LISSAJOUS TRAJECTORY
 # ==============================================================================
 def generate_lissajous_path():
+    """Return a Lissajous path centered on the configured start pose."""
 
     if NUM_POINTS < 2:
         raise ValueError("NUM_POINTS must be at least 2 for a closed trajectory")
